@@ -60,7 +60,13 @@ export class MemStorage implements IStorage {
 
   async createPracticeSession(insertSession: InsertPracticeSession): Promise<PracticeSession> {
     const id = randomUUID();
-    const session: PracticeSession = { ...insertSession, id };
+    const session: PracticeSession = { 
+      ...insertSession, 
+      id,
+      userId: insertSession.userId || null,
+      endTime: insertSession.endTime || null,
+      completed: insertSession.completed || false
+    };
     this.practiceSessions.set(id, session);
     return session;
   }
@@ -85,7 +91,12 @@ export class MemStorage implements IStorage {
     const goal: PracticeGoal = { 
       ...insertGoal, 
       id, 
-      createdAt: new Date() 
+      createdAt: new Date(),
+      userId: insertGoal.userId || null,
+      description: insertGoal.description || null,
+      progress: insertGoal.progress || 0,
+      completed: insertGoal.completed || false,
+      targetDate: insertGoal.targetDate || null
     };
     this.practiceGoals.set(id, goal);
     return goal;
@@ -111,7 +122,8 @@ export class MemStorage implements IStorage {
     const progression: ChordProgression = { 
       ...insertProgression, 
       id, 
-      createdAt: new Date() 
+      createdAt: new Date(),
+      userId: insertProgression.userId || null
     };
     this.chordProgressions.set(id, progression);
     return progression;
