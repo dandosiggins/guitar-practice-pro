@@ -35,64 +35,91 @@ export default function Scales() {
   const renderFretboard = () => {
     const position = currentPosition;
     const strings = [1, 2, 3, 4, 5, 6]; // High E to Low E
-    const frets = Array.from({ length: 12 }, (_, i) => i + 1);
+    const frets = Array.from({ length: 12 }, (_, i) => i);
 
     return (
       <div className="bg-gradient-to-r from-amber-900 to-amber-800 rounded-lg p-6 mb-6">
         <div className="text-center mb-4">
-          <h3 className="text-white font-semibold">
-            {selectedRoot} {currentScale.name} Scale - Position {selectedPosition}
+          <h3 className="text-white font-semibold text-lg">
+            {selectedRoot} {currentScale.name} Scale
           </h3>
+          <p className="text-amber-200 text-sm mt-1">
+            Guitar fretboard showing where to place your fingers
+          </p>
+        </div>
+        
+        {/* Instructions */}
+        <div className="bg-amber-900/30 rounded p-3 mb-4">
+          <p className="text-amber-100 text-sm text-center">
+            <strong>How to read:</strong> Each horizontal line is a guitar string. 
+            Dots show where to press the frets. Orange = root notes, Blue = other scale notes.
+          </p>
         </div>
         
         <div className="bg-amber-900/50 rounded p-4">
-          <div className="grid grid-cols-13 gap-1 text-xs">
-            {/* Fret markers */}
-            <div></div>
+          {/* Fret numbers at top */}
+          <div className="grid grid-cols-13 gap-1 text-xs mb-2">
+            <div className="text-amber-200 text-right pr-2 font-bold">Fret:</div>
             {frets.map(fret => (
-              <div key={fret} className={`text-center ${[3, 5, 7, 9, 12].includes(fret) ? 'text-amber-200 opacity-70' : ''}`}>
-                {[3, 5, 7, 9, 12].includes(fret) ? fret : ''}
+              <div key={fret} className="text-center text-amber-200 font-mono">
+                {fret === 0 ? 'Open' : fret}
               </div>
             ))}
-
-            {/* Strings */}
-            {strings.map(stringNum => {
-              const stringName = ['e', 'B', 'G', 'D', 'A', 'E'][stringNum - 1];
-              const stringFrets = position.frets[stringNum] || [];
-              const rootNotes = position.rootNotes.filter(note => note.string === stringNum);
-              
-              return (
-                <div key={stringNum} className="contents">
-                  <div className="text-amber-200 text-right pr-2 font-mono">{stringName}</div>
-                  {frets.map(fret => {
-                    const hasNote = stringFrets.includes(fret);
-                    const isRoot = rootNotes.some(root => root.fret === fret);
-                    
-                    return (
-                      <div key={fret} className={`h-6 relative ${stringNum < 6 ? 'border-b-2 border-amber-600' : ''}`}>
-                        {hasNote && (
-                          <div className={`w-4 h-4 rounded-full absolute -top-2 left-1/2 transform -translate-x-1/2 ${
-                            isRoot ? 'bg-[#f59e0b]' : 'bg-[#6366f1]'
-                          }`}></div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
           </div>
+
+          {/* Strings and notes */}
+          {strings.map(stringNum => {
+            const stringNames = ['1st (High E)', '2nd (B)', '3rd (G)', '4th (D)', '5th (A)', '6th (Low E)'];
+            const stringName = stringNames[stringNum - 1];
+            const stringFrets = position.frets[stringNum] || [];
+            const rootNotes = position.rootNotes.filter(note => note.string === stringNum);
+            
+            return (
+              <div key={stringNum} className="grid grid-cols-13 gap-1 mb-3">
+                <div className="text-amber-200 text-right pr-2 font-bold text-xs">
+                  {stringName}
+                </div>
+                {frets.map(fret => {
+                  const hasNote = stringFrets.includes(fret);
+                  const isRoot = rootNotes.some(root => root.fret === fret);
+                  
+                  return (
+                    <div key={fret} className="h-8 relative border-b-2 border-amber-600 flex items-center justify-center">
+                      {hasNote && (
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                          isRoot ? 'bg-[#f59e0b] border-2 border-amber-300' : 'bg-[#6366f1] border-2 border-blue-300'
+                        }`}>
+                          {isRoot ? selectedRoot : '•'}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
 
-        {/* Legend */}
-        <div className="flex justify-center mt-4 space-x-6">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-[#f59e0b] rounded-full"></div>
-            <span className="text-amber-100 text-sm">Root Note</span>
+        {/* Legend and instructions */}
+        <div className="mt-4 space-y-3">
+          <div className="flex justify-center space-x-8">
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 bg-[#f59e0b] border-2 border-amber-300 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                {selectedRoot}
+              </div>
+              <span className="text-amber-100 text-sm">Root Note ({selectedRoot})</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 bg-[#6366f1] border-2 border-blue-300 rounded-full flex items-center justify-center text-white text-xs font-bold">•</div>
+              <span className="text-amber-100 text-sm">Other Scale Notes</span>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-[#6366f1] rounded-full"></div>
-            <span className="text-amber-100 text-sm">Scale Note</span>
+          
+          <div className="bg-amber-900/30 rounded p-3">
+            <p className="text-amber-100 text-xs text-center">
+              <strong>Guitar Orientation:</strong> Hold your guitar normally - the top string here is the thinnest (high E), 
+              bottom string is the thickest (low E). Numbers show which fret to press.
+            </p>
           </div>
         </div>
       </div>
@@ -130,27 +157,33 @@ export default function Scales() {
             {renderFretboard()}
 
             {/* Scale Controls */}
-            <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-4">
-              <Button
-                size="lg"
-                className="bg-[#6366f1] hover:bg-[#6366f1]/80 text-white px-6 py-3 font-semibold"
-                onClick={playScale}
-              >
-                <Play className="mr-2" size={20} />
-                Play Scale
-              </Button>
-              <div className="flex items-center space-x-2">
-                <label className="text-slate-300">Speed:</label>
-                <Slider
-                  value={[playbackSpeed]}
-                  onValueChange={([value]) => setPlaybackSpeed(value)}
-                  min={60}
-                  max={140}
-                  step={10}
-                  className="w-24 slider"
-                />
-                <span className="text-slate-300 text-sm w-16">{playbackSpeed} BPM</span>
+            <div className="bg-slate-800 rounded-lg p-4">
+              <h4 className="text-white font-medium mb-3">Practice Tools</h4>
+              <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-4">
+                <Button
+                  size="lg"
+                  className="bg-[#6366f1] hover:bg-[#6366f1]/80 text-white px-6 py-3 font-semibold"
+                  onClick={playScale}
+                >
+                  <Play className="mr-2" size={20} />
+                  Play Scale Audio
+                </Button>
+                <div className="flex items-center space-x-2">
+                  <label className="text-slate-300">Speed:</label>
+                  <Slider
+                    value={[playbackSpeed]}
+                    onValueChange={([value]) => setPlaybackSpeed(value)}
+                    min={60}
+                    max={140}
+                    step={10}
+                    className="w-24 slider"
+                  />
+                  <span className="text-slate-300 text-sm w-16">{playbackSpeed} BPM</span>
+                </div>
               </div>
+              <p className="text-slate-400 text-xs mt-2">
+                Click "Play Scale Audio" to hear how the scale should sound
+              </p>
             </div>
           </CardContent>
         </Card>
