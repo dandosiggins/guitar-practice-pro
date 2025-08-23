@@ -8,8 +8,9 @@ import {
   scaleTypes, 
   noteNames, 
   generateScaleNotes, 
-  cMajorPosition1,
-  getScaleFrequencies
+  getScalePosition,
+  getScaleFrequencies,
+  intervalsToScaleDegrees
 } from '@/lib/scale-data';
 import { audioEngine } from '@/lib/audio';
 
@@ -27,8 +28,12 @@ export default function Scales() {
     return generateScaleNotes(selectedRoot, selectedScale);
   }, [selectedRoot, selectedScale]);
 
+  const currentPosition = useMemo(() => {
+    return getScalePosition(selectedRoot, selectedScale, selectedPosition);
+  }, [selectedRoot, selectedScale, selectedPosition]);
+
   const renderFretboard = () => {
-    const position = cMajorPosition1; // Using C Major position 1 as template
+    const position = currentPosition;
     const strings = [1, 2, 3, 4, 5, 6]; // High E to Low E
     const frets = Array.from({ length: 12 }, (_, i) => i + 1);
 
@@ -233,9 +238,7 @@ export default function Scales() {
               <div>
                 <span className="text-slate-400 text-sm">Intervals:</span>
                 <div className="text-white font-mono mt-1">
-                  {currentScale.intervals.map((interval, index) => 
-                    index === 0 ? '1' : `${interval + 1}`
-                  ).join(' ')}
+                  {intervalsToScaleDegrees(currentScale.intervals).join(' ')}
                 </div>
               </div>
             </div>

@@ -76,6 +76,14 @@ export const scaleTypes: { [key: string]: Scale } = {
 
 export const noteNames = ['C', 'C#/Db', 'D', 'D#/Eb', 'E', 'F', 'F#/Gb', 'G', 'G#/Ab', 'A', 'A#/Bb', 'B'];
 
+// Convert semitone intervals to scale degree numbers
+export const intervalsToScaleDegrees = (intervals: number[]): string[] => {
+  return intervals.map((interval, index) => {
+    if (index === 0) return '1';
+    return (index + 1).toString();
+  });
+};
+
 export const generateScaleNotes = (root: string, scaleType: string): string[] => {
   const rootIndex = noteNames.findIndex(note => note.includes(root));
   const scale = scaleTypes[scaleType];
@@ -109,10 +117,54 @@ export const cMajorPosition1: ScalePosition = {
   ]
 };
 
+// Calculate fret positions for any scale in any key
+export const calculateScalePosition = (root: string, scaleType: string, position: number): ScalePosition => {
+  const scale = scaleTypes[scaleType];
+  if (!scale) return cMajorPosition1;
+  
+  const rootIndex = noteNames.findIndex(note => note.includes(root));
+  if (rootIndex === -1) return cMajorPosition1;
+  
+  // Standard guitar tuning from 6th string (low E) to 1st string (high E)
+  const stringTuning = [4, 9, 2, 7, 11, 4]; // E A D G B E (semitones from C)
+  
+  const scalePositions: { [string: number]: number[] } = {};
+  const rootNotes: { string: number; fret: number }[] = [];
+  
+  // Calculate positions for each string
+  for (let stringNum = 1; stringNum <= 6; stringNum++) {
+    const stringOpenNote = stringTuning[stringNum - 1];
+    const positions: number[] = [];
+    
+    // Check frets 0-12 for scale notes
+    for (let fret = 0; fret <= 12; fret++) {
+      const fretNote = (stringOpenNote + fret) % 12;
+      
+      // Check if this fret contains any note from our scale
+      scale.intervals.forEach((interval, noteIndex) => {
+        const scaleNoteIndex = (rootIndex + interval) % 12;
+        if (fretNote === scaleNoteIndex) {
+          positions.push(fret);
+          // Mark root notes
+          if (interval === 0) {
+            rootNotes.push({ string: stringNum, fret });
+          }
+        }
+      });
+    }
+    
+    scalePositions[stringNum] = Array.from(new Set(positions)).sort((a, b) => a - b);
+  }
+  
+  return {
+    position,
+    frets: scalePositions,
+    rootNotes
+  };
+};
+
 export const getScalePosition = (root: string, scaleType: string, position: number): ScalePosition => {
-  // For now, return the C major position 1 as template
-  // In a full implementation, this would calculate positions for all keys/scales
-  return cMajorPosition1;
+  return calculateScalePosition(root, scaleType, position);
 };
 
 export const getScaleFrequencies = (root: string, scaleType: string): number[] => {
