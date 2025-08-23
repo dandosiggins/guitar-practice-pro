@@ -125,19 +125,30 @@ export const calculateScalePosition = (root: string, scaleType: string, position
   const rootIndex = noteNames.findIndex(note => note.includes(root));
   if (rootIndex === -1) return cMajorPosition1;
   
+  // Define fret ranges for each position (guitar scale box patterns)
+  const positionRanges: { [pos: number]: { start: number; end: number } } = {
+    1: { start: 0, end: 4 },   // Open position to 4th fret
+    2: { start: 2, end: 6 },   // 2nd to 6th fret  
+    3: { start: 4, end: 8 },   // 4th to 8th fret
+    4: { start: 7, end: 11 },  // 7th to 11th fret
+    5: { start: 9, end: 13 }   // 9th to 13th fret
+  };
+  
+  const range = positionRanges[position] || positionRanges[1];
+  
   // Standard guitar tuning from 6th string (low E) to 1st string (high E)
   const stringTuning = [4, 9, 2, 7, 11, 4]; // E A D G B E (semitones from C)
   
   const scalePositions: { [string: number]: number[] } = {};
   const rootNotes: { string: number; fret: number }[] = [];
   
-  // Calculate positions for each string
+  // Calculate positions for each string within the position range
   for (let stringNum = 1; stringNum <= 6; stringNum++) {
     const stringOpenNote = stringTuning[stringNum - 1];
     const positions: number[] = [];
     
-    // Check frets 0-12 for scale notes
-    for (let fret = 0; fret <= 12; fret++) {
+    // Check only frets within the position range
+    for (let fret = range.start; fret <= range.end; fret++) {
       const fretNote = (stringOpenNote + fret) % 12;
       
       // Check if this fret contains any note from our scale

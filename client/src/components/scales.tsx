@@ -35,7 +35,18 @@ export default function Scales() {
   const renderFretboard = () => {
     const position = currentPosition;
     const strings = [1, 2, 3, 4, 5, 6]; // High E to Low E
-    const frets = Array.from({ length: 12 }, (_, i) => i);
+    
+    // Define fret ranges for each position to show only relevant frets
+    const positionRanges: { [pos: number]: { start: number; end: number } } = {
+      1: { start: 0, end: 4 },   // Open position to 4th fret
+      2: { start: 2, end: 6 },   // 2nd to 6th fret  
+      3: { start: 4, end: 8 },   // 4th to 8th fret
+      4: { start: 7, end: 11 },  // 7th to 11th fret
+      5: { start: 9, end: 13 }   // 9th to 13th fret
+    };
+    
+    const range = positionRanges[selectedPosition] || positionRanges[1];
+    const frets = Array.from({ length: range.end - range.start + 1 }, (_, i) => range.start + i);
 
     return (
       <div className="bg-gradient-to-r from-amber-900 to-amber-800 rounded-lg p-6 mb-6">
@@ -61,7 +72,7 @@ export default function Scales() {
           <div className="flex items-center mb-2">
             <div className="w-20 text-amber-200 text-xs text-right pr-3 font-bold">Fret:</div>
             <div className="flex">
-              {frets.slice(0, 12).map(fret => (
+              {frets.map(fret => (
                 <div key={fret} className="w-12 text-center text-amber-200 font-mono text-xs font-bold">
                   {fret === 0 ? '0' : fret}
                 </div>
@@ -86,7 +97,7 @@ export default function Scales() {
                     {/* String line */}
                     <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-amber-600 transform -translate-y-1/2"></div>
                     
-                    {frets.slice(0, 12).map(fret => {
+                    {frets.map(fret => {
                       const hasNote = stringFrets.includes(fret);
                       const isRoot = rootNotes.some(root => root.fret === fret);
                       
@@ -117,7 +128,7 @@ export default function Scales() {
           <div className="flex items-center mt-1">
             <div className="w-20 text-xs text-right pr-3"></div>
             <div className="flex relative">
-              {frets.slice(0, 12).map(fret => (
+              {frets.map(fret => (
                 <div key={fret} className="w-12 flex justify-center">
                   {[3, 5, 7, 9, 12].includes(fret) && (
                     <div className="w-2 h-2 bg-amber-500 rounded-full opacity-60"></div>
