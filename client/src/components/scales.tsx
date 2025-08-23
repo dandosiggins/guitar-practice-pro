@@ -57,14 +57,16 @@ export default function Scales() {
         </div>
         
         <div className="bg-amber-900/50 rounded p-4 overflow-x-auto">
-          {/* Fret markers */}
+          {/* Fret numbers header - perfectly aligned */}
           <div className="flex items-center mb-2">
-            <div className="w-20 text-amber-200 text-xs text-right pr-3">Strings:</div>
-            {frets.slice(0, 12).map(fret => (
-              <div key={fret} className="w-12 text-center text-amber-200 font-mono text-xs">
-                {fret === 0 ? '0' : fret}
-              </div>
-            ))}
+            <div className="w-20 text-amber-200 text-xs text-right pr-3 font-bold">Fret:</div>
+            <div className="flex">
+              {frets.slice(0, 12).map(fret => (
+                <div key={fret} className="w-12 text-center text-amber-200 font-mono text-xs font-bold">
+                  {fret === 0 ? '0' : fret}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Guitar strings as one connected pattern */}
@@ -111,14 +113,18 @@ export default function Scales() {
             })}
           </div>
 
-          {/* Fret position markers */}
-          <div className="flex items-center mt-2">
+          {/* Fret position markers (3rd, 5th, 7th, etc.) */}
+          <div className="flex items-center mt-1">
             <div className="w-20 text-xs text-right pr-3"></div>
-            {[3, 5, 7, 9, 12].map(fretMarker => (
-              <div key={fretMarker} className="absolute" style={{left: `${fretMarker * 48 + 80}px`}}>
-                <div className="w-2 h-2 bg-amber-500 rounded-full opacity-50"></div>
-              </div>
-            ))}
+            <div className="flex relative">
+              {frets.slice(0, 12).map(fret => (
+                <div key={fret} className="w-12 flex justify-center">
+                  {[3, 5, 7, 9, 12].includes(fret) && (
+                    <div className="w-2 h-2 bg-amber-500 rounded-full opacity-60"></div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
