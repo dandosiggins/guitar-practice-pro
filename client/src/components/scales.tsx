@@ -41,84 +41,106 @@ export default function Scales() {
       <div className="bg-gradient-to-r from-amber-900 to-amber-800 rounded-lg p-6 mb-6">
         <div className="text-center mb-4">
           <h3 className="text-white font-semibold text-lg">
-            {selectedRoot} {currentScale.name} Scale
+            {selectedRoot} {currentScale.name} Scale - Position {selectedPosition}
           </h3>
           <p className="text-amber-200 text-sm mt-1">
-            Guitar fretboard showing where to place your fingers
+            One connected scale pattern across all 6 strings
           </p>
         </div>
         
         {/* Instructions */}
         <div className="bg-amber-900/30 rounded p-3 mb-4">
           <p className="text-amber-100 text-sm text-center">
-            <strong>How to read:</strong> Each horizontal line is a guitar string. 
-            Dots show where to press the frets. Orange = root notes, Blue = other scale notes.
+            <strong>This is ONE scale pattern</strong> that connects across all strings. 
+            Play the marked notes in sequence to hear the scale.
           </p>
         </div>
         
-        <div className="bg-amber-900/50 rounded p-4">
-          {/* Fret numbers at top */}
-          <div className="grid grid-cols-13 gap-1 text-xs mb-2">
-            <div className="text-amber-200 text-right pr-2 font-bold">Fret:</div>
-            {frets.map(fret => (
-              <div key={fret} className="text-center text-amber-200 font-mono">
-                {fret === 0 ? 'Open' : fret}
+        <div className="bg-amber-900/50 rounded p-4 overflow-x-auto">
+          {/* Fret markers */}
+          <div className="flex items-center mb-2">
+            <div className="w-20 text-amber-200 text-xs text-right pr-3">Strings:</div>
+            {frets.slice(0, 12).map(fret => (
+              <div key={fret} className="w-12 text-center text-amber-200 font-mono text-xs">
+                {fret === 0 ? '0' : fret}
               </div>
             ))}
           </div>
 
-          {/* Strings and notes */}
-          {strings.map(stringNum => {
-            const stringNames = ['1st (High E)', '2nd (B)', '3rd (G)', '4th (D)', '5th (A)', '6th (Low E)'];
-            const stringName = stringNames[stringNum - 1];
-            const stringFrets = position.frets[stringNum] || [];
-            const rootNotes = position.rootNotes.filter(note => note.string === stringNum);
-            
-            return (
-              <div key={stringNum} className="grid grid-cols-13 gap-1 mb-3">
-                <div className="text-amber-200 text-right pr-2 font-bold text-xs">
-                  {stringName}
-                </div>
-                {frets.map(fret => {
-                  const hasNote = stringFrets.includes(fret);
-                  const isRoot = rootNotes.some(root => root.fret === fret);
-                  
-                  return (
-                    <div key={fret} className="h-8 relative border-b-2 border-amber-600 flex items-center justify-center">
-                      {hasNote && (
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
-                          isRoot ? 'bg-[#f59e0b] border-2 border-amber-300' : 'bg-[#6366f1] border-2 border-blue-300'
-                        }`}>
-                          {isRoot ? selectedRoot : '•'}
+          {/* Guitar strings as one connected pattern */}
+          <div className="relative">
+            {strings.map(stringNum => {
+              const stringNames = ['E', 'B', 'G', 'D', 'A', 'E'];
+              const stringName = stringNames[stringNum - 1];
+              const stringFrets = position.frets[stringNum] || [];
+              const rootNotes = position.rootNotes.filter(note => note.string === stringNum);
+              
+              return (
+                <div key={stringNum} className="flex items-center mb-1">
+                  <div className="w-20 text-amber-200 text-xs text-right pr-3 font-bold">
+                    {stringName}
+                  </div>
+                  <div className="flex relative">
+                    {/* String line */}
+                    <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-amber-600 transform -translate-y-1/2"></div>
+                    
+                    {frets.slice(0, 12).map(fret => {
+                      const hasNote = stringFrets.includes(fret);
+                      const isRoot = rootNotes.some(root => root.fret === fret);
+                      
+                      return (
+                        <div key={fret} className="w-12 h-8 relative flex items-center justify-center">
+                          {/* Fret marker */}
+                          {fret > 0 && (
+                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-amber-700"></div>
+                          )}
+                          
+                          {hasNote && (
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold relative z-10 ${
+                              isRoot ? 'bg-[#f59e0b] border-2 border-amber-300' : 'bg-[#6366f1] border-2 border-blue-300'
+                            }`}>
+                              {isRoot ? selectedRoot : '•'}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Fret position markers */}
+          <div className="flex items-center mt-2">
+            <div className="w-20 text-xs text-right pr-3"></div>
+            {[3, 5, 7, 9, 12].map(fretMarker => (
+              <div key={fretMarker} className="absolute" style={{left: `${fretMarker * 48 + 80}px`}}>
+                <div className="w-2 h-2 bg-amber-500 rounded-full opacity-50"></div>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
 
         {/* Legend and instructions */}
         <div className="mt-4 space-y-3">
           <div className="flex justify-center space-x-8">
             <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-[#f59e0b] border-2 border-amber-300 rounded-full flex items-center justify-center text-white text-xs font-bold">
+              <div className="w-5 h-5 bg-[#f59e0b] border-2 border-amber-300 rounded-full flex items-center justify-center text-white text-xs font-bold">
                 {selectedRoot}
               </div>
-              <span className="text-amber-100 text-sm">Root Note ({selectedRoot})</span>
+              <span className="text-amber-100 text-sm">Root Note</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-[#6366f1] border-2 border-blue-300 rounded-full flex items-center justify-center text-white text-xs font-bold">•</div>
-              <span className="text-amber-100 text-sm">Other Scale Notes</span>
+              <div className="w-5 h-5 bg-[#6366f1] border-2 border-blue-300 rounded-full flex items-center justify-center text-white text-xs font-bold">•</div>
+              <span className="text-amber-100 text-sm">Scale Notes</span>
             </div>
           </div>
           
           <div className="bg-amber-900/30 rounded p-3">
             <p className="text-amber-100 text-xs text-center">
-              <strong>Guitar Orientation:</strong> Hold your guitar normally - the top string here is the thinnest (high E), 
-              bottom string is the thickest (low E). Numbers show which fret to press.
+              <strong>How to play:</strong> This shows one complete scale pattern. Start from any root note (orange) 
+              and play through the connected notes to create the full scale sound.
             </p>
           </div>
         </div>
