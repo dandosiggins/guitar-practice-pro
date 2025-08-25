@@ -120,6 +120,281 @@ export const chordLibrary: ChordDiagram[] = [
     frets: ['x', 2, 4, 4, 3, 2],
     fingers: '1-3-4-2-1',
     difficulty: 'Medium'
+  },
+  {
+    name: 'B',
+    fullName: 'B Major',
+    type: 'Major',
+    key: 'B',
+    frets: ['x', 2, 4, 4, 4, 2],
+    fingers: '1-3-4-4-1',
+    difficulty: 'Hard'
+  },
+  {
+    name: 'B7',
+    fullName: 'B Dominant 7th',
+    type: '7th',
+    key: 'B',
+    frets: ['x', 2, 1, 2, 0, 2],
+    fingers: '2-1-3-4',
+    difficulty: 'Medium'
+  },
+
+  // 7th Chords
+  {
+    name: 'A7',
+    fullName: 'A Dominant 7th',
+    type: '7th',
+    key: 'A',
+    frets: ['x', 0, 2, 0, 2, 0],
+    fingers: '2-3',
+    difficulty: 'Easy'
+  },
+  {
+    name: 'D7',
+    fullName: 'D Dominant 7th',
+    type: '7th',
+    key: 'D',
+    frets: ['x', 'x', 0, 2, 1, 2],
+    fingers: '2-1-3',
+    difficulty: 'Easy'
+  },
+  {
+    name: 'E7',
+    fullName: 'E Dominant 7th',
+    type: '7th',
+    key: 'E',
+    frets: [0, 2, 0, 1, 0, 0],
+    fingers: '2-1',
+    difficulty: 'Easy'
+  },
+  {
+    name: 'G7',
+    fullName: 'G Dominant 7th',
+    type: '7th',
+    key: 'G',
+    frets: [3, 2, 0, 0, 0, 1],
+    fingers: '3-2-1',
+    difficulty: 'Easy'
+  },
+  {
+    name: 'C7',
+    fullName: 'C Dominant 7th',
+    type: '7th',
+    key: 'C',
+    frets: ['x', 3, 2, 3, 1, 0],
+    fingers: '3-2-4-1',
+    difficulty: 'Medium'
+  },
+
+  // Minor 7th Chords
+  {
+    name: 'Am7',
+    fullName: 'A Minor 7th',
+    type: 'Minor 7th',
+    key: 'A',
+    frets: ['x', 0, 2, 0, 1, 0],
+    fingers: '2-1',
+    difficulty: 'Easy'
+  },
+  {
+    name: 'Dm7',
+    fullName: 'D Minor 7th',
+    type: 'Minor 7th',
+    key: 'D',
+    frets: ['x', 'x', 0, 2, 1, 1],
+    fingers: '2-1-1',
+    difficulty: 'Easy'
+  },
+  {
+    name: 'Em7',
+    fullName: 'E Minor 7th',
+    type: 'Minor 7th',
+    key: 'E',
+    frets: [0, 2, 2, 0, 3, 0],
+    fingers: '2-3-4',
+    difficulty: 'Easy'
+  },
+  {
+    name: 'Gm7',
+    fullName: 'G Minor 7th',
+    type: 'Minor 7th',
+    key: 'G',
+    frets: [3, 5, 3, 3, 3, 3],
+    fingers: '1-3-1-1-1-1',
+    difficulty: 'Hard'
+  },
+
+  // Major 7th Chords
+  {
+    name: 'Cmaj7',
+    fullName: 'C Major 7th',
+    type: 'Major 7th',
+    key: 'C',
+    frets: ['x', 3, 2, 0, 0, 0],
+    fingers: '3-2',
+    difficulty: 'Easy'
+  },
+  {
+    name: 'Dmaj7',
+    fullName: 'D Major 7th',
+    type: 'Major 7th',
+    key: 'D',
+    frets: ['x', 'x', 0, 2, 2, 2],
+    fingers: '1-2-3',
+    difficulty: 'Easy'
+  },
+  {
+    name: 'Gmaj7',
+    fullName: 'G Major 7th',
+    type: 'Major 7th',
+    key: 'G',
+    frets: [3, 2, 0, 0, 0, 2],
+    fingers: '3-1-2',
+    difficulty: 'Easy'
+  },
+  {
+    name: 'Amaj7',
+    fullName: 'A Major 7th',
+    type: 'Major 7th',
+    key: 'A',
+    frets: ['x', 0, 2, 1, 2, 0],
+    fingers: '2-1-3',
+    difficulty: 'Easy'
+  },
+
+  // Suspended Chords
+  {
+    name: 'Dsus4',
+    fullName: 'D Suspended 4th',
+    type: 'Suspended',
+    key: 'D',
+    frets: ['x', 'x', 0, 2, 3, 3],
+    fingers: '1-2-3',
+    difficulty: 'Easy'
+  },
+  {
+    name: 'Asus4',
+    fullName: 'A Suspended 4th',
+    type: 'Suspended',
+    key: 'A',
+    frets: ['x', 0, 2, 2, 3, 0],
+    fingers: '1-2-3',
+    difficulty: 'Easy'
+  },
+  {
+    name: 'Esus4',
+    fullName: 'E Suspended 4th',
+    type: 'Suspended',
+    key: 'E',
+    frets: [0, 2, 2, 2, 0, 0],
+    fingers: '2-3-4',
+    difficulty: 'Easy'
+  },
+  {
+    name: 'Gsus4',
+    fullName: 'G Suspended 4th',
+    type: 'Suspended',
+    key: 'G',
+    frets: [3, 3, 0, 0, 1, 3],
+    fingers: '3-4-1-3',
+    difficulty: 'Medium'
+  },
+
+  // Additional Major/Minor Chords
+  {
+    name: 'F#m',
+    fullName: 'F# Minor',
+    type: 'Minor',
+    key: 'F#',
+    frets: [2, 4, 4, 2, 2, 2],
+    fingers: '1-3-4-1-1-1',
+    difficulty: 'Hard'
+  },
+  {
+    name: 'Bb',
+    fullName: 'Bb Major',
+    type: 'Major',
+    key: 'Bb',
+    frets: ['x', 1, 3, 3, 3, 1],
+    fingers: '1-2-3-4-1',
+    difficulty: 'Hard'
+  },
+  {
+    name: 'Eb',
+    fullName: 'Eb Major',
+    type: 'Major',
+    key: 'Eb',
+    frets: ['x', 'x', 1, 3, 4, 3],
+    fingers: '1-2-4-3',
+    difficulty: 'Medium'
+  },
+  {
+    name: 'Gm',
+    fullName: 'G Minor',
+    type: 'Minor',
+    key: 'G',
+    frets: [3, 5, 5, 3, 3, 3],
+    fingers: '1-3-4-1-1-1',
+    difficulty: 'Hard'
+  },
+  {
+    name: 'Fm',
+    fullName: 'F Minor',
+    type: 'Minor',
+    key: 'F',
+    frets: [1, 3, 3, 1, 1, 1],
+    fingers: '1-3-4-1-1-1',
+    difficulty: 'Hard'
+  },
+
+  // Add9 Chords
+  {
+    name: 'Cadd9',
+    fullName: 'C Add 9',
+    type: 'Major',
+    key: 'C',
+    frets: ['x', 3, 2, 0, 3, 0],
+    fingers: '2-1-3',
+    difficulty: 'Easy'
+  },
+  {
+    name: 'Gadd9',
+    fullName: 'G Add 9',
+    type: 'Major',
+    key: 'G',
+    frets: [3, 0, 0, 0, 0, 3],
+    fingers: '3-4',
+    difficulty: 'Easy'
+  },
+  {
+    name: 'Dadd9',
+    fullName: 'D Add 9',
+    type: 'Major',
+    key: 'D',
+    frets: ['x', 'x', 0, 2, 3, 0],
+    fingers: '1-2',
+    difficulty: 'Easy'
+  },
+
+  // Diminished Chords
+  {
+    name: 'Bdim',
+    fullName: 'B Diminished',
+    type: 'Diminished',
+    key: 'B',
+    frets: ['x', 2, 3, 1, 3, 1],
+    fingers: '2-3-1-4-1',
+    difficulty: 'Hard'
+  },
+  {
+    name: 'C#dim',
+    fullName: 'C# Diminished',
+    type: 'Diminished',
+    key: 'C#',
+    frets: ['x', 'x', 2, 3, 2, 3],
+    fingers: '1-2-1-3',
+    difficulty: 'Medium'
   }
 ];
 
