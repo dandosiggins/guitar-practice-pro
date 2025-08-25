@@ -95,6 +95,8 @@ const weeklyData = [
 export default function Practice() {
   const [exercises, setExercises] = useState(mockExercises);
   const [sessionActive, setSessionActive] = useState(true);
+  const [sessionPaused, setSessionPaused] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
 
   const completedExercises = exercises.filter(ex => ex.status === 'completed').length;
   const totalExercises = exercises.length;
@@ -102,8 +104,18 @@ export default function Practice() {
 
   const toggleExercise = (id: string) => {
     setExercises(exercises.map(exercise => {
-      if (exercise.id === id && exercise.status === 'active') {
-        return { ...exercise, status: 'completed' };
+      if (exercise.id === id) {
+        if (exercise.status === 'active') {
+          return { ...exercise, status: 'completed' };
+        } else if (exercise.status === 'pending') {
+          // Start the next exercise
+          const updatedExercises = exercises.map(ex => 
+            ex.status === 'active' ? { ...ex, status: 'completed' } : ex
+          );
+          return { ...exercise, status: 'active' };
+        } else if (exercise.status === 'completed') {
+          return { ...exercise, status: 'pending' };
+        }
       }
       return exercise;
     }));
@@ -111,7 +123,73 @@ export default function Practice() {
 
   const startQuickSession = (type: string) => {
     console.log(`Starting ${type} session`);
-    // Implementation would create a new practice session
+    // Reset to a fresh practice session
+    const sessionExercises = getSessionExercises(type);
+    setExercises(sessionExercises);
+    setSessionActive(true);
+    setSessionPaused(false);
+  };
+
+  const getSessionExercises = (type: string): Exercise[] => {
+    const baseExercises: { [key: string]: Exercise[] } = {
+      warmup: [
+        { id: '1', title: 'Finger Stretches', duration: 2, status: 'active', type: 'warmup' },
+        { id: '2', title: 'Chromatic Exercise', duration: 3, status: 'pending', type: 'warmup' }
+      ],
+      chords: [
+        { id: '1', title: 'Open Chord Practice', duration: 5, status: 'active', type: 'chords' },
+        { id: '2', title: 'Chord Transitions', duration: 5, status: 'pending', type: 'chords' },
+        { id: '3', title: 'Strumming Patterns', duration: 5, status: 'pending', type: 'chords' }
+      ],
+      scales: [
+        { id: '1', title: 'C Major Scale - Position 1', duration: 7, status: 'active', type: 'scales' },
+        { id: '2', title: 'Scale Sequences', duration: 7, status: 'pending', type: 'scales' },
+        { id: '3', title: 'Scale Applications', duration: 6, status: 'pending', type: 'scales' }
+      ],
+      technique: [
+        { id: '1', title: 'Alternate Picking', duration: 8, status: 'active', type: 'technique' },
+        { id: '2', title: 'Legato Practice', duration: 7, status: 'pending', type: 'technique' },
+        { id: '3', title: 'String Skipping', duration: 8, status: 'pending', type: 'technique' },
+        { id: '4', title: 'Vibrato Exercise', duration: 7, status: 'pending', type: 'technique' }
+      ]
+    };
+    return baseExercises[type] || mockExercises;
+  };
+
+  const continueSession = () => {
+    setSessionPaused(false);
+    setSessionActive(true);
+  };
+
+  const pauseSession = () => {
+    setSessionPaused(true);
+  };
+
+  const endSession = () => {
+    setSessionActive(false);
+    setSessionPaused(false);
+    // Mark current active exercise as completed
+    setExercises(exercises.map(ex => 
+      ex.status === 'active' ? { ...ex, status: 'completed' } : ex
+    ));
+  };
+
+  const getExerciseDescription = (type: string, title: string): string => {
+    const descriptions: { [key: string]: string } = {
+      'Finger Stretches': 'Gentle finger and hand stretches to prepare for practice',
+      'Chromatic Exercise': 'Play chromatic runs to warm up your fingers',
+      'Open Chord Practice': 'Practice basic open chords with clean transitions',
+      'Chord Transitions': 'Focus on smooth changes between chord shapes',
+      'Strumming Patterns': 'Practice different strumming rhythms and dynamics',
+      'C Major Scale - Position 1': 'Practice ascending and descending patterns at 80 BPM',
+      'Scale Sequences': 'Practice scale patterns in thirds, fourths, and sequences',
+      'Scale Applications': 'Apply scales to real musical contexts and improvisation',
+      'Alternate Picking': 'Focus on clean alternate picking technique',
+      'Legato Practice': 'Practice hammer-ons and pull-offs for smooth playing',
+      'String Skipping': 'Advanced technique for skipping strings accurately',
+      'Vibrato Exercise': 'Develop controlled vibrato for expression'
+    };
+    return descriptions[title] || `Practice ${type} techniques with focus and precision`;
   };
 
   return (
@@ -127,28 +205,59 @@ export default function Practice() {
             </h2>
 
             {/* Current Exercise */}
-            <Card className="bg-slate-800 border-slate-600 mb-6">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-white">C Major Scale - Position 1</h3>
-                  <span className="bg-[#f59e0b] text-slate-900 px-3 py-1 rounded-full text-sm font-semibold">
-                    Active
-                  </span>
-                </div>
-                <p className="text-slate-300 mb-4">Practice ascending and descending patterns at 80 BPM</p>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <Clock className="text-[#6366f1]" size={16} />
-                    <span className="text-slate-300 text-sm">Duration:</span>
-                    <span className="text-white font-semibold">15 min</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-slate-300 text-sm">BPM:</span>
-                    <span className="text-white font-semibold">80</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {(() => {
+              const activeExercise = exercises.find(ex => ex.status === 'active');
+              if (!activeExercise && sessionActive) {
+                return (
+                  <Card className="bg-slate-800 border-slate-600 mb-6">
+                    <CardContent className="p-6 text-center">
+                      <h3 className="text-lg font-semibold text-white mb-2">Session Complete!</h3>
+                      <p className="text-slate-300">All exercises finished. Great job!</p>
+                    </CardContent>
+                  </Card>
+                );
+              }
+              if (!sessionActive) {
+                return (
+                  <Card className="bg-slate-800 border-slate-600 mb-6">
+                    <CardContent className="p-6 text-center">
+                      <h3 className="text-lg font-semibold text-white mb-2">Session Ended</h3>
+                      <p className="text-slate-300">Start a new session when you're ready to practice!</p>
+                    </CardContent>
+                  </Card>
+                );
+              }
+              return (
+                <Card className="bg-slate-800 border-slate-600 mb-6">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-white">{activeExercise?.title}</h3>
+                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                        sessionPaused 
+                          ? 'bg-yellow-600 text-white'
+                          : 'bg-[#f59e0b] text-slate-900'
+                      }`}>
+                        {sessionPaused ? 'Paused' : 'Active'}
+                      </span>
+                    </div>
+                    <p className="text-slate-300 mb-4">
+                      {getExerciseDescription(activeExercise?.type || '', activeExercise?.title || '')}
+                    </p>
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <Clock className="text-[#6366f1]" size={16} />
+                        <span className="text-slate-300 text-sm">Duration:</span>
+                        <span className="text-white font-semibold">{activeExercise?.duration} min</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-slate-300 text-sm">BPM:</span>
+                        <span className="text-white font-semibold">80</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
 
             {/* Session Progress */}
             <div className="mb-6">
@@ -229,15 +338,18 @@ export default function Practice() {
               <Button
                 size="lg"
                 className="bg-green-600 hover:bg-green-500 text-white px-6 py-3 font-semibold"
-                disabled={!sessionActive}
+                disabled={!sessionActive || !sessionPaused}
+                onClick={continueSession}
               >
                 <Play className="mr-2" size={16} />
-                Continue Session
+                {sessionPaused ? 'Resume Session' : 'Continue Session'}
               </Button>
               <Button
                 size="lg"
                 variant="secondary"
                 className="bg-slate-700 hover:bg-slate-600 text-white px-6 py-3 font-semibold"
+                disabled={!sessionActive || sessionPaused}
+                onClick={pauseSession}
               >
                 <Pause className="mr-2" size={16} />
                 Pause
@@ -246,6 +358,8 @@ export default function Practice() {
                 size="lg"
                 variant="destructive"
                 className="bg-red-600 hover:bg-red-500 text-white px-6 py-3 font-semibold"
+                disabled={!sessionActive}
+                onClick={endSession}
               >
                 <Square className="mr-2" size={16} />
                 End Session
@@ -359,6 +473,11 @@ export default function Practice() {
             <Button
               variant="default"
               className="w-full bg-[#6366f1] hover:bg-[#6366f1]/80 text-white py-2 text-sm"
+              onClick={() => {
+                console.log('Opening goal creation dialog');
+                // In a real app, this would open a modal or form
+                alert('Goal creation feature - coming soon!');
+              }}
             >
               <Plus className="mr-2" size={16} />
               Add New Goal
