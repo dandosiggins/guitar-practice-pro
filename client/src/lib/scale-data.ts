@@ -125,38 +125,19 @@ export const calculateScalePosition = (root: string, scaleType: string, position
   const rootIndex = noteNames.findIndex(note => note.includes(root));
   if (rootIndex === -1) return cMajorPosition1;
   
+  // Define fret ranges for each position (guitar scale box patterns)
+  const positionRanges: { [pos: number]: { start: number; end: number } } = {
+    1: { start: 0, end: 4 },   // Open position to 4th fret
+    2: { start: 2, end: 6 },   // 2nd to 6th fret  
+    3: { start: 4, end: 8 },   // 4th to 8th fret
+    4: { start: 7, end: 11 },  // 7th to 11th fret
+    5: { start: 9, end: 13 }   // 9th to 13th fret
+  };
+  
+  const range = positionRanges[position] || positionRanges[1];
+  
   // Standard guitar tuning from 6th string (low E) to 1st string (high E)
   const stringTuning = [4, 9, 2, 7, 11, 4]; // E A D G B E (semitones from C)
-  
-  // Find where the root note appears on the 6th string (low E)
-  const lowEString = stringTuning[5]; // 6th string
-  const rootNotePositions: number[] = [];
-  
-  // Find all root note positions on the low E string (up to 12th fret)
-  for (let fret = 0; fret <= 12; fret++) {
-    const fretNote = (lowEString + fret) % 12;
-    if (fretNote === rootIndex) {
-      rootNotePositions.push(fret);
-    }
-  }
-  
-  // Define position centers based on root note locations
-  const positionCenters = rootNotePositions.slice(0, 5); // Take first 5 positions
-  
-  // If we don't have enough positions, add some standard ones
-  while (positionCenters.length < 5) {
-    const lastPos = positionCenters[positionCenters.length - 1] || 0;
-    positionCenters.push(lastPos + 12);
-  }
-  
-  // Get the center fret for the requested position
-  const centerFret = positionCenters[position - 1] || positionCenters[0];
-  
-  // Create a 5-fret range around the center
-  const range = {
-    start: Math.max(0, centerFret - 2),
-    end: Math.min(15, centerFret + 2)
-  };
   
   const scalePositions: { [string: number]: number[] } = {};
   const rootNotes: { string: number; fret: number }[] = [];

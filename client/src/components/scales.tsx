@@ -36,15 +36,17 @@ export default function Scales() {
     const position = currentPosition;
     const strings = [1, 2, 3, 4, 5, 6]; // High E to Low E
     
-    // Get the actual fret range from the position data
-    const allFrets = Object.values(position.frets).flat();
-    const minFret = Math.min(...allFrets);
-    const maxFret = Math.max(...allFrets);
+    // Define fret ranges for each position to show only relevant frets
+    const positionRanges: { [pos: number]: { start: number; end: number } } = {
+      1: { start: 0, end: 4 },   // Open position to 4th fret
+      2: { start: 2, end: 6 },   // 2nd to 6th fret  
+      3: { start: 4, end: 8 },   // 4th to 8th fret
+      4: { start: 7, end: 11 },  // 7th to 11th fret
+      5: { start: 9, end: 13 }   // 9th to 13th fret
+    };
     
-    // Create a range that shows the relevant frets with a bit of context
-    const startFret = Math.max(0, minFret - 1);
-    const endFret = Math.min(15, maxFret + 1);
-    const frets = Array.from({ length: endFret - startFret + 1 }, (_, i) => startFret + i);
+    const range = positionRanges[selectedPosition] || positionRanges[1];
+    const frets = Array.from({ length: range.end - range.start + 1 }, (_, i) => range.start + i);
 
     return (
       <div className="bg-gradient-to-r from-amber-900 to-amber-800 rounded-lg p-6 mb-6">
