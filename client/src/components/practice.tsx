@@ -12,7 +12,10 @@ import {
   Plus,
   Clock,
   Target,
-  Lightbulb
+  Lightbulb,
+  X,
+  Edit,
+  Trash2
 } from 'lucide-react';
 
 interface Exercise {
@@ -97,6 +100,8 @@ export default function Practice() {
   const [sessionActive, setSessionActive] = useState(true);
   const [sessionPaused, setSessionPaused] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const [showAddExercise, setShowAddExercise] = useState(false);
+  const [newExercise, setNewExercise] = useState({ title: '', duration: 10, type: 'custom' });
 
   const completedExercises = exercises.filter(ex => ex.status === 'completed').length;
   const totalExercises = exercises.length;
@@ -172,6 +177,25 @@ export default function Practice() {
     setExercises(exercises.map(ex => 
       ex.status === 'active' ? { ...ex, status: 'completed' } : ex
     ));
+  };
+
+  const addExercise = () => {
+    if (newExercise.title.trim()) {
+      const exercise: Exercise = {
+        id: (exercises.length + 1).toString(),
+        title: newExercise.title,
+        duration: newExercise.duration,
+        status: 'pending',
+        type: newExercise.type
+      };
+      setExercises([...exercises, exercise]);
+      setNewExercise({ title: '', duration: 10, type: 'custom' });
+      setShowAddExercise(false);
+    }
+  };
+
+  const removeExercise = (id: string) => {
+    setExercises(exercises.filter(ex => ex.id !== id));
   };
 
   const getExerciseDescription = (type: string, title: string): string => {
@@ -317,20 +341,115 @@ export default function Practice() {
                       </div>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-slate-400 hover:text-white"
-                    onClick={() => toggleExercise(exercise.id)}
-                  >
-                    {exercise.status === 'completed' ? (
-                      <RotateCcw size={16} />
-                    ) : (
-                      <Pause size={16} />
-                    )}
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-slate-400 hover:text-white"
+                      onClick={() => toggleExercise(exercise.id)}
+                      data-testid={`button-toggle-exercise-${exercise.id}`}
+                    >
+                      {exercise.status === 'completed' ? (
+                        <RotateCcw size={16} />
+                      ) : (
+                        <Pause size={16} />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-400 hover:text-red-300"
+                      onClick={() => removeExercise(exercise.id)}
+                      data-testid={`button-remove-exercise-${exercise.id}`}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
                 </div>
               ))}
+              
+              {/* Add Exercise Form */}
+              {showAddExercise ? (
+                <Card className="bg-slate-800 border-2 border-[#6366f1] border-dashed">
+                  <CardContent className="p-4">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-slate-300 text-sm font-medium block mb-2">Exercise Name</label>
+                        <input
+                          type="text"
+                          value={newExercise.title}
+                          onChange={(e) => setNewExercise({...newExercise, title: e.target.value})}
+                          className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6366f1]"
+                          placeholder="Enter exercise name..."
+                          data-testid="input-exercise-title"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-slate-300 text-sm font-medium block mb-2">Duration (minutes)</label>
+                          <input
+                            type="number"
+                            value={newExercise.duration}
+                            onChange={(e) => setNewExercise({...newExercise, duration: parseInt(e.target.value) || 10})}
+                            className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6366f1]"
+                            min="1"
+                            max="60"
+                            data-testid="input-exercise-duration"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-slate-300 text-sm font-medium block mb-2">Type</label>
+                          <select
+                            value={newExercise.type}
+                            onChange={(e) => setNewExercise({...newExercise, type: e.target.value})}
+                            className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6366f1]"
+                            data-testid="select-exercise-type"
+                          >
+                            <option value="custom">Custom</option>
+                            <option value="chords">Chords</option>
+                            <option value="scales">Scales</option>
+                            <option value="technique">Technique</option>
+                            <option value="songs">Songs</option>
+                            <option value="warmup">Warm-up</option>
+                            <option value="rhythm">Rhythm</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowAddExercise(false)}
+                          className="text-slate-400 hover:text-white"
+                          data-testid="button-cancel-add-exercise"
+                        >
+                          <X className="mr-2" size={16} />
+                          Cancel
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={addExercise}
+                          className="bg-[#6366f1] hover:bg-[#6366f1]/80 text-white"
+                          data-testid="button-save-exercise"
+                        >
+                          <Plus className="mr-2" size={16} />
+                          Add Exercise
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Button
+                  variant="ghost"
+                  className="w-full text-left p-4 border-2 border-dashed border-slate-600 hover:border-[#6366f1] bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                  onClick={() => setShowAddExercise(true)}
+                  data-testid="button-show-add-exercise"
+                >
+                  <Plus className="mr-2" size={16} />
+                  Add Custom Exercise
+                </Button>
+              )}
             </div>
 
             {/* Session Controls */}
