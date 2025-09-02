@@ -101,7 +101,7 @@ export default function Practice() {
   const [sessionPaused, setSessionPaused] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [showAddExercise, setShowAddExercise] = useState(false);
-  const [newExercise, setNewExercise] = useState({ title: '', duration: 10, type: 'custom' });
+  const [newExercise, setNewExercise] = useState<{ title: string; duration: number | string; type: string }>({ title: '', duration: 10, type: 'custom' });
 
   const completedExercises = exercises.filter(ex => ex.status === 'completed').length;
   const totalExercises = exercises.length;
@@ -222,7 +222,10 @@ export default function Practice() {
       return `${type.charAt(0).toUpperCase() + type.slice(1)} Practice`;
     } else if (uniqueTypes.includes('warmup') && uniqueTypes.length === 2) {
       const otherType = uniqueTypes.find(t => t !== 'warmup');
-      return `${otherType?.charAt(0).toUpperCase() + otherType?.slice(1)} Session`;
+      if (otherType) {
+        return `${otherType.charAt(0).toUpperCase() + otherType.slice(1)} Session`;
+      }
+      return 'Practice Session';
     } else {
       return 'Mixed Practice Session';
     }
@@ -246,7 +249,7 @@ export default function Practice() {
       const exercise: Exercise = {
         id: (exercises.length + 1).toString(),
         title: newExercise.title,
-        duration: newExercise.duration,
+        duration: typeof newExercise.duration === 'string' ? 10 : newExercise.duration,
         status: 'pending',
         type: newExercise.type
       };
@@ -452,10 +455,26 @@ export default function Practice() {
                           <input
                             type="number"
                             value={newExercise.duration}
-                            onChange={(e) => setNewExercise({...newExercise, duration: parseInt(e.target.value) || 10})}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === '') {
+                                setNewExercise({...newExercise, duration: ''});
+                              } else {
+                                const numValue = parseInt(value);
+                                if (!isNaN(numValue) && numValue >= 1 && numValue <= 60) {
+                                  setNewExercise({...newExercise, duration: numValue});
+                                }
+                              }
+                            }}
+                            onBlur={(e) => {
+                              if (e.target.value === '' || isNaN(parseInt(e.target.value))) {
+                                setNewExercise({...newExercise, duration: 10});
+                              }
+                            }}
                             className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6366f1]"
                             min="1"
                             max="60"
+                            placeholder="10"
                             data-testid="input-exercise-duration"
                           />
                         </div>
