@@ -454,14 +454,37 @@ export default function Practice() {
                         <div>
                           <label className="text-slate-300 text-sm font-medium block mb-2">Duration (minutes)</label>
                           <input
+                            ref={durationInputRef}
                             type="text"
                             inputMode="numeric"
                             value={newExercise.duration}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              // Allow empty string or any numeric characters
+                            onKeyDown={(e) => {
+                              // Allow backspace, delete, arrow keys, tab, and numeric keys
+                              const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'];
+                              const isNumeric = /^[0-9]$/.test(e.key);
+                              
+                              if (!allowedKeys.includes(e.key) && !isNumeric) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onInput={(e) => {
+                              const target = e.target as HTMLInputElement;
+                              const value = target.value;
+                              const cursorPos = target.selectionStart || 0;
+                              
+                              // Allow empty or numeric values only
                               if (value === '' || /^\d+$/.test(value)) {
                                 setNewExercise({...newExercise, duration: value});
+                                
+                                // Restore cursor position after React re-render
+                                requestAnimationFrame(() => {
+                                  if (durationInputRef.current) {
+                                    durationInputRef.current.setSelectionRange(cursorPos, cursorPos);
+                                  }
+                                });
+                              } else {
+                                // If invalid characters, reset to previous valid value
+                                target.value = newExercise.duration.toString();
                               }
                             }}
                             onBlur={(e) => {
