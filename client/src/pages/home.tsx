@@ -5,6 +5,8 @@ import ChordLibrary from '@/components/chord-library';
 import Scales from '@/components/scales';
 import Tuner from '@/components/tuner';
 import Practice from '@/components/practice';
+import PracticeSchedule from '@/components/practice-schedule';
+import PracticeHistory from '@/components/practice-history';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('metronome');
@@ -21,6 +23,10 @@ export default function Home() {
         return <Tuner />;
       case 'practice':
         return <Practice />;
+      case 'schedule':
+        return <PracticeSchedule />;
+      case 'history':
+        return <PracticeHistory />;
       default:
         return <Metronome />;
     }

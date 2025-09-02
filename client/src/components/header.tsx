@@ -6,6 +6,8 @@ import {
   Music, 
   Radio, 
   ClipboardList, 
+  Calendar,
+  History,
   Menu,
   Guitar
 } from 'lucide-react';
@@ -20,7 +22,9 @@ const tabs = [
   { id: 'chords', label: 'Chords', icon: Hand },
   { id: 'scales', label: 'Scales', icon: Music },
   { id: 'tuner', label: 'Tuner', icon: Radio },
-  { id: 'practice', label: 'Practice', icon: ClipboardList }
+  { id: 'practice', label: 'Practice', icon: ClipboardList },
+  { id: 'schedule', label: 'Schedule', icon: Calendar },
+  { id: 'history', label: 'History', icon: History }
 ];
 
 export default function Header({ activeTab, onTabChange }: HeaderProps) {

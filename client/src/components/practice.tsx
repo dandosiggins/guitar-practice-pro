@@ -170,13 +170,75 @@ export default function Practice() {
     setSessionPaused(true);
   };
 
-  const endSession = () => {
+  const endSession = async () => {
+    const completedExercises = exercises.filter(ex => ex.status === 'completed').length;
+    const totalExercises = exercises.length;
+    const totalDuration = exercises.reduce((sum, ex) => 
+      ex.status === 'completed' ? sum + ex.duration : sum, 0
+    );
+
+    // Save to practice history
+    try {
+      const historyEntry = {
+        userId: 'user-1', // In a real app, this would come from auth context
+        sessionTitle: getCurrentSessionTitle(),
+        exercises: exercises.map(ex => ({
+          title: ex.title,
+          duration: ex.duration,
+          completed: ex.status === 'completed',
+          type: ex.type
+        })),
+        totalDuration,
+        completedExercises,
+        totalExercises,
+        practiceDate: new Date().toISOString(),
+        notes: getSessionNotes()
+      };
+
+      // In a real app, this would be an API call
+      console.log('Saving practice session to history:', historyEntry);
+      
+      // For now, just log the completion
+      alert(`Session completed! ${completedExercises}/${totalExercises} exercises finished in ${totalDuration} minutes.`);
+      
+    } catch (error) {
+      console.error('Failed to save practice session:', error);
+    }
+
     setSessionActive(false);
     setSessionPaused(false);
     // Mark current active exercise as completed
     setExercises(exercises.map(ex => 
       ex.status === 'active' ? { ...ex, status: 'completed' } : ex
     ));
+  };
+
+  const getCurrentSessionTitle = () => {
+    const sessionTypes = exercises.map(ex => ex.type);
+    const uniqueTypes = Array.from(new Set(sessionTypes));
+    
+    if (uniqueTypes.length === 1) {
+      const type = uniqueTypes[0];
+      return `${type.charAt(0).toUpperCase() + type.slice(1)} Practice`;
+    } else if (uniqueTypes.includes('warmup') && uniqueTypes.length === 2) {
+      const otherType = uniqueTypes.find(t => t !== 'warmup');
+      return `${otherType?.charAt(0).toUpperCase() + otherType?.slice(1)} Session`;
+    } else {
+      return 'Mixed Practice Session';
+    }
+  };
+
+  const getSessionNotes = () => {
+    const completedCount = exercises.filter(ex => ex.status === 'completed').length;
+    const totalCount = exercises.length;
+    
+    if (completedCount === totalCount) {
+      return 'Completed all exercises successfully!';
+    } else if (completedCount > totalCount * 0.8) {
+      return 'Good session with most exercises completed.';
+    } else {
+      return 'Practice session ended early.';
+    }
   };
 
   const addExercise = () => {

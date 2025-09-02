@@ -38,6 +38,31 @@ export const chordProgression = pgTable("chord_progressions", {
   createdAt: timestamp("created_at").default(sql`now()`),
 });
 
+export const practiceSchedule = pgTable("practice_schedules", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  title: text("title").notNull(),
+  dayOfWeek: integer("day_of_week").notNull(), // 0 = Sunday, 1 = Monday, etc.
+  startTime: text("start_time").notNull(), // HH:MM format
+  duration: integer("duration").notNull(), // in minutes
+  exercises: jsonb("exercises").notNull(), // array of exercise objects
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").default(sql`now()`),
+});
+
+export const practiceHistory = pgTable("practice_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  sessionTitle: text("session_title").notNull(),
+  exercises: jsonb("exercises").notNull(), // array of completed exercise objects
+  totalDuration: integer("total_duration").notNull(), // actual time spent in minutes
+  completedExercises: integer("completed_exercises").notNull(),
+  totalExercises: integer("total_exercises").notNull(),
+  practiceDate: timestamp("practice_date").notNull(),
+  notes: text("notes"), // optional user notes about the session
+  createdAt: timestamp("created_at").default(sql`now()`),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
 });
@@ -56,6 +81,16 @@ export const insertChordProgressionSchema = createInsertSchema(chordProgression)
   createdAt: true,
 });
 
+export const insertPracticeScheduleSchema = createInsertSchema(practiceSchedule).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPracticeHistorySchema = createInsertSchema(practiceHistory).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertPracticeSession = z.infer<typeof insertPracticeSessionSchema>;
@@ -64,3 +99,7 @@ export type InsertPracticeGoal = z.infer<typeof insertPracticeGoalSchema>;
 export type PracticeGoal = typeof practiceGoal.$inferSelect;
 export type InsertChordProgression = z.infer<typeof insertChordProgressionSchema>;
 export type ChordProgression = typeof chordProgression.$inferSelect;
+export type InsertPracticeSchedule = z.infer<typeof insertPracticeScheduleSchema>;
+export type PracticeSchedule = typeof practiceSchedule.$inferSelect;
+export type InsertPracticeHistory = z.infer<typeof insertPracticeHistorySchema>;
+export type PracticeHistory = typeof practiceHistory.$inferSelect;

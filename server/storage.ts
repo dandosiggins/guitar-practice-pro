@@ -6,7 +6,11 @@ import {
   type PracticeGoal,
   type InsertPracticeGoal,
   type ChordProgression,
-  type InsertChordProgression
+  type InsertChordProgression,
+  type PracticeSchedule,
+  type InsertPracticeSchedule,
+  type PracticeHistory,
+  type InsertPracticeHistory
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -26,6 +30,15 @@ export interface IStorage {
   createChordProgression(progression: InsertChordProgression): Promise<ChordProgression>;
   getUserChordProgressions(userId: string): Promise<ChordProgression[]>;
   deleteChordProgression(id: string): Promise<boolean>;
+  
+  createPracticeSchedule(schedule: InsertPracticeSchedule): Promise<PracticeSchedule>;
+  getUserPracticeSchedules(userId: string): Promise<PracticeSchedule[]>;
+  updatePracticeSchedule(id: string, updates: Partial<PracticeSchedule>): Promise<PracticeSchedule | undefined>;
+  deletePracticeSchedule(id: string): Promise<boolean>;
+  
+  createPracticeHistoryEntry(history: InsertPracticeHistory): Promise<PracticeHistory>;
+  getUserPracticeHistory(userId: string, limit?: number, offset?: number): Promise<PracticeHistory[]>;
+  getPracticeStats(userId: string, days: number): Promise<any>;
 }
 
 export class MemStorage implements IStorage {
@@ -33,12 +46,16 @@ export class MemStorage implements IStorage {
   private practiceSessions: Map<string, PracticeSession>;
   private practiceGoals: Map<string, PracticeGoal>;
   private chordProgressions: Map<string, ChordProgression>;
+  private practiceSchedules: Map<string, PracticeSchedule>;
+  private practiceHistory: Map<string, PracticeHistory>;
 
   constructor() {
     this.users = new Map();
     this.practiceSessions = new Map();
     this.practiceGoals = new Map();
     this.chordProgressions = new Map();
+    this.practiceSchedules = new Map();
+    this.practiceHistory = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -137,6 +154,83 @@ export class MemStorage implements IStorage {
 
   async deleteChordProgression(id: string): Promise<boolean> {
     return this.chordProgressions.delete(id);
+  }
+
+  async createPracticeSchedule(insertSchedule: InsertPracticeSchedule): Promise<PracticeSchedule> {
+    const id = randomUUID();
+    const schedule: PracticeSchedule = { 
+      ...insertSchedule, 
+      id, 
+      createdAt: new Date(),
+      userId: insertSchedule.userId || null,
+      isActive: insertSchedule.isActive ?? true
+    };
+    this.practiceSchedules.set(id, schedule);
+    return schedule;
+  }
+
+  async getUserPracticeSchedules(userId: string): Promise<PracticeSchedule[]> {
+    return Array.from(this.practiceSchedules.values()).filter(
+      (schedule) => schedule.userId === userId,
+    );
+  }
+
+  async updatePracticeSchedule(id: string, updates: Partial<PracticeSchedule>): Promise<PracticeSchedule | undefined> {
+    const schedule = this.practiceSchedules.get(id);
+    if (!schedule) return undefined;
+    
+    const updated = { ...schedule, ...updates };
+    this.practiceSchedules.set(id, updated);
+    return updated;
+  }
+
+  async deletePracticeSchedule(id: string): Promise<boolean> {
+    return this.practiceSchedules.delete(id);
+  }
+
+  async createPracticeHistoryEntry(insertHistory: InsertPracticeHistory): Promise<PracticeHistory> {
+    const id = randomUUID();
+    const history: PracticeHistory = { 
+      ...insertHistory, 
+      id, 
+      createdAt: new Date(),
+      userId: insertHistory.userId || null,
+      notes: insertHistory.notes || null
+    };
+    this.practiceHistory.set(id, history);
+    return history;
+  }
+
+  async getUserPracticeHistory(userId: string, limit: number = 50, offset: number = 0): Promise<PracticeHistory[]> {
+    const userHistory = Array.from(this.practiceHistory.values())
+      .filter((history) => history.userId === userId)
+      .sort((a, b) => new Date(b.practiceDate).getTime() - new Date(a.practiceDate).getTime());
+    
+    return userHistory.slice(offset, offset + limit);
+  }
+
+  async getPracticeStats(userId: string, days: number): Promise<any> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    const userHistory = Array.from(this.practiceHistory.values())
+      .filter((history) => 
+        history.userId === userId && 
+        new Date(history.practiceDate) >= cutoffDate
+      );
+
+    const totalSessions = userHistory.length;
+    const totalMinutes = userHistory.reduce((sum, h) => sum + h.totalDuration, 0);
+    const averageCompletionRate = totalSessions > 0 
+      ? userHistory.reduce((sum, h) => sum + (h.completedExercises / h.totalExercises), 0) / totalSessions
+      : 0;
+
+    return {
+      totalSessions,
+      totalMinutes,
+      averageCompletionRate: Math.round(averageCompletionRate * 100),
+      averageSessionLength: totalSessions > 0 ? Math.round(totalMinutes / totalSessions) : 0
+    };
   }
 }
 

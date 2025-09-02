@@ -4,7 +4,9 @@ import { storage } from "./storage";
 import { 
   insertPracticeSessionSchema,
   insertPracticeGoalSchema,
-  insertChordProgressionSchema
+  insertChordProgressionSchema,
+  insertPracticeScheduleSchema,
+  insertPracticeHistorySchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -101,6 +103,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete chord progression" });
+    }
+  });
+
+  // Practice Schedules
+  app.get("/api/practice-schedules/:userId", async (req, res) => {
+    try {
+      const schedules = await storage.getUserPracticeSchedules(req.params.userId);
+      res.json(schedules);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch practice schedules" });
+    }
+  });
+
+  app.post("/api/practice-schedules", async (req, res) => {
+    try {
+      const validatedData = insertPracticeScheduleSchema.parse(req.body);
+      const schedule = await storage.createPracticeSchedule(validatedData);
+      res.json(schedule);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid practice schedule data" });
+    }
+  });
+
+  app.patch("/api/practice-schedules/:id", async (req, res) => {
+    try {
+      const updated = await storage.updatePracticeSchedule(req.params.id, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: "Practice schedule not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update practice schedule" });
+    }
+  });
+
+  app.delete("/api/practice-schedules/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deletePracticeSchedule(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Practice schedule not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete practice schedule" });
+    }
+  });
+
+  // Practice History
+  app.get("/api/practice-history/:userId", async (req, res) => {
+    try {
+      const { limit = 50, offset = 0 } = req.query;
+      const history = await storage.getUserPracticeHistory(
+        req.params.userId, 
+        parseInt(limit as string), 
+        parseInt(offset as string)
+      );
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch practice history" });
+    }
+  });
+
+  app.post("/api/practice-history", async (req, res) => {
+    try {
+      const validatedData = insertPracticeHistorySchema.parse(req.body);
+      const historyEntry = await storage.createPracticeHistoryEntry(validatedData);
+      res.json(historyEntry);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid practice history data" });
+    }
+  });
+
+  app.get("/api/practice-history/:userId/stats", async (req, res) => {
+    try {
+      const { days = 30 } = req.query;
+      const stats = await storage.getPracticeStats(req.params.userId, parseInt(days as string));
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch practice stats" });
     }
   });
 
