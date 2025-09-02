@@ -90,6 +90,40 @@ export default function PracticeSchedule() {
     setSchedules(schedules.filter(schedule => schedule.id !== id));
   };
 
+  const startEditSchedule = (schedule: ScheduledPractice) => {
+    setEditingSchedule(schedule);
+    setNewSchedule({
+      title: schedule.title,
+      dayOfWeek: schedule.dayOfWeek,
+      startTime: schedule.startTime,
+      duration: schedule.duration,
+      exercises: schedule.exercises
+    });
+  };
+
+  const updateSchedule = () => {
+    if (editingSchedule && newSchedule.title.trim()) {
+      setSchedules(schedules.map(schedule => 
+        schedule.id === editingSchedule.id 
+          ? {
+              ...editingSchedule,
+              ...newSchedule,
+              exercises: [
+                { title: 'Practice Session', duration: newSchedule.duration }
+              ]
+            }
+          : schedule
+      ));
+      setEditingSchedule(null);
+      setNewSchedule({ title: '', dayOfWeek: 1, startTime: '09:00', duration: 30, exercises: [] });
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingSchedule(null);
+    setNewSchedule({ title: '', dayOfWeek: 1, startTime: '09:00', duration: 30, exercises: [] });
+  };
+
   const addSchedule = () => {
     if (newSchedule.title.trim()) {
       const schedule: ScheduledPractice = {
@@ -195,6 +229,15 @@ export default function PracticeSchedule() {
                                   variant="ghost"
                                   size="sm"
                                   className="h-6 w-6 p-0 text-slate-400 hover:text-white"
+                                  onClick={() => startEditSchedule(schedule)}
+                                  data-testid={`button-edit-schedule-${schedule.id}`}
+                                >
+                                  <Edit size={12} />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 text-slate-400 hover:text-white"
                                   onClick={() => toggleScheduleActive(schedule.id)}
                                   data-testid={`button-toggle-schedule-${schedule.id}`}
                                 >
@@ -230,11 +273,13 @@ export default function PracticeSchedule() {
         </CardContent>
       </Card>
 
-      {/* Add Schedule Form */}
-      {showAddForm && (
+      {/* Add/Edit Schedule Form */}
+      {(showAddForm || editingSchedule) && (
         <Card className="bg-dark-panel border-slate-700">
           <CardContent className="p-8">
-            <h3 className="text-xl font-bold text-white mb-6">Add New Schedule</h3>
+            <h3 className="text-xl font-bold text-white mb-6">
+              {editingSchedule ? 'Edit Schedule' : 'Add New Schedule'}
+            </h3>
             
             <div className="space-y-6">
               <div>
@@ -292,19 +337,28 @@ export default function PracticeSchedule() {
               <div className="flex justify-end space-x-4">
                 <Button
                   variant="ghost"
-                  onClick={() => setShowAddForm(false)}
+                  onClick={() => editingSchedule ? cancelEdit() : setShowAddForm(false)}
                   className="text-slate-400 hover:text-white"
                   data-testid="button-cancel-schedule"
                 >
                   Cancel
                 </Button>
                 <Button
-                  onClick={addSchedule}
+                  onClick={editingSchedule ? updateSchedule : addSchedule}
                   className="bg-[#6366f1] hover:bg-[#6366f1]/80 text-white"
                   data-testid="button-save-schedule"
                 >
-                  <Plus className="mr-2" size={16} />
-                  Add Schedule
+                  {editingSchedule ? (
+                    <>
+                      <Edit className="mr-2" size={16} />
+                      Update Schedule
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="mr-2" size={16} />
+                      Add Schedule
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
