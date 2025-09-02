@@ -457,9 +457,9 @@ export default function Practice() {
                             ref={durationInputRef}
                             type="text"
                             inputMode="numeric"
-                            value={newExercise.duration}
+                            defaultValue={newExercise.duration}
                             onKeyDown={(e) => {
-                              // Allow backspace, delete, arrow keys, tab, and numeric keys
+                              // Allow backspace, delete, arrow keys, tab, enter, and numeric keys
                               const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'];
                               const isNumeric = /^[0-9]$/.test(e.key);
                               
@@ -467,40 +467,23 @@ export default function Practice() {
                                 e.preventDefault();
                               }
                             }}
-                            onInput={(e) => {
-                              const target = e.target as HTMLInputElement;
-                              const value = target.value;
-                              const cursorPos = target.selectionStart || 0;
-                              
-                              // Allow empty or numeric values only
-                              if (value === '' || /^\d+$/.test(value)) {
-                                setNewExercise({...newExercise, duration: value});
-                                
-                                // Restore cursor position after React re-render
-                                requestAnimationFrame(() => {
-                                  if (durationInputRef.current) {
-                                    durationInputRef.current.setSelectionRange(cursorPos, cursorPos);
-                                  }
-                                });
-                              } else {
-                                // If invalid characters, reset to previous valid value
-                                target.value = newExercise.duration.toString();
-                              }
-                            }}
                             onBlur={(e) => {
                               const value = e.target.value;
-                              if (value === '' || isNaN(parseInt(value))) {
-                                setNewExercise({...newExercise, duration: 10});
-                              } else {
+                              let finalValue = 10;
+                              
+                              if (value !== '' && !isNaN(parseInt(value))) {
                                 const numValue = parseInt(value);
                                 if (numValue < 1) {
-                                  setNewExercise({...newExercise, duration: 1});
+                                  finalValue = 1;
                                 } else if (numValue > 60) {
-                                  setNewExercise({...newExercise, duration: 60});
+                                  finalValue = 60;
                                 } else {
-                                  setNewExercise({...newExercise, duration: numValue});
+                                  finalValue = numValue;
                                 }
                               }
+                              
+                              setNewExercise({...newExercise, duration: finalValue});
+                              e.target.value = finalValue.toString();
                             }}
                             className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6366f1]"
                             placeholder="10"
