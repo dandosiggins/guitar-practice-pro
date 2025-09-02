@@ -467,6 +467,10 @@ export default function Practice() {
                                 setNewExercise({...newExercise, duration: value});
                               }
                             }}
+                            onFocus={(e) => {
+                              // Select all text when focusing so user can immediately type new number
+                              e.target.select();
+                            }}
                             onBlur={(e) => {
                               const value = e.target.value;
                               if (value === '' || isNaN(parseInt(value))) {
