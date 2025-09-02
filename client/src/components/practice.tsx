@@ -457,18 +457,29 @@ export default function Practice() {
                             value={newExercise.duration}
                             onChange={(e) => {
                               const value = e.target.value;
+                              // Allow empty string for clearing
                               if (value === '') {
                                 setNewExercise({...newExercise, duration: ''});
-                              } else {
-                                const numValue = parseInt(value);
-                                if (!isNaN(numValue) && numValue >= 1 && numValue <= 60) {
-                                  setNewExercise({...newExercise, duration: numValue});
-                                }
+                                return;
+                              }
+                              // Allow any numeric input while typing (including partial numbers)
+                              if (/^\d*$/.test(value)) {
+                                setNewExercise({...newExercise, duration: value});
                               }
                             }}
                             onBlur={(e) => {
-                              if (e.target.value === '' || isNaN(parseInt(e.target.value))) {
+                              const value = e.target.value;
+                              if (value === '' || isNaN(parseInt(value))) {
                                 setNewExercise({...newExercise, duration: 10});
+                              } else {
+                                const numValue = parseInt(value);
+                                if (numValue < 1) {
+                                  setNewExercise({...newExercise, duration: 1});
+                                } else if (numValue > 60) {
+                                  setNewExercise({...newExercise, duration: 60});
+                                } else {
+                                  setNewExercise({...newExercise, duration: numValue});
+                                }
                               }
                             }}
                             className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6366f1]"
