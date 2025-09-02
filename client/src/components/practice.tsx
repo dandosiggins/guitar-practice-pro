@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useSchedule } from '@/contexts/ScheduleContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -11,6 +12,7 @@ import {
   RotateCcw,
   Plus,
   Clock,
+  Calendar,
   Target,
   Lightbulb,
   X,
@@ -102,7 +104,14 @@ export default function Practice() {
   const [currentTime, setCurrentTime] = useState(0);
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [newExercise, setNewExercise] = useState<{ title: string; duration: number | string; type: string }>({ title: '', duration: 10, type: 'custom' });
+  const { getTodaysSchedules } = useSchedule();
+  const [todaysSchedules, setTodaysSchedules] = useState(() => getTodaysSchedules());
   const durationInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Update today's schedules when the component mounts or when the date changes
+    setTodaysSchedules(getTodaysSchedules());
+  }, [getTodaysSchedules]);
 
   const completedExercises = exercises.filter(ex => ex.status === 'completed').length;
   const totalExercises = exercises.length;
@@ -245,6 +254,21 @@ export default function Practice() {
     }
   };
 
+  const loadScheduledSession = (scheduledPractice: any) => {
+    const scheduledExercises: Exercise[] = scheduledPractice.exercises.map((ex: any, index: number) => ({
+      id: `scheduled-${index + 1}`,
+      title: ex.title,
+      duration: ex.duration,
+      status: 'pending' as const,
+      type: ex.type || 'custom'
+    }));
+    
+    setExercises(scheduledExercises);
+    setSessionActive(false);
+    setSessionPaused(false);
+    setCurrentTime(0);
+  };
+
   const addExercise = () => {
     if (newExercise.title.trim()) {
       const exercise: Exercise = {
@@ -286,6 +310,50 @@ export default function Practice() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Practice Session */}
       <div className="lg:col-span-2 space-y-8">
+        {/* Today's Scheduled Sessions */}
+        {todaysSchedules.length > 0 && (
+          <Card className="bg-dark-panel border-slate-700">
+            <CardContent className="p-8">
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+                <Calendar className="mr-3 text-[#6366f1]" size={24} />
+                Today's Scheduled Sessions
+              </h2>
+              <div className="space-y-3">
+                {todaysSchedules.map(schedule => (
+                  <Card key={schedule.id} className="bg-slate-800 border-slate-600">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-white mb-1">{schedule.title}</h3>
+                          <div className="flex items-center space-x-4 text-slate-400 text-sm">
+                            <div className="flex items-center space-x-1">
+                              <Clock size={12} />
+                              <span>{schedule.startTime}</span>
+                            </div>
+                            <span>•</span>
+                            <span>{schedule.duration}m</span>
+                            <span>•</span>
+                            <span>{schedule.exercises.length} exercises</span>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => loadScheduledSession(schedule)}
+                          className="bg-[#6366f1] hover:bg-[#6366f1]/80 text-white"
+                          size="sm"
+                          data-testid={`button-load-schedule-${schedule.id}`}
+                        >
+                          <Play className="mr-2" size={14} />
+                          Load Session
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Current Session */}
         <Card className="bg-dark-panel border-slate-700">
           <CardContent className="p-8">

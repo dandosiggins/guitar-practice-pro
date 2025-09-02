@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSchedule, type ScheduledPractice } from '@/contexts/ScheduleContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
@@ -11,66 +12,22 @@ import {
   PowerOff
 } from 'lucide-react';
 
-interface ScheduledPractice {
-  id: string;
-  title: string;
-  dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
-  startTime: string; // HH:MM format
-  duration: number; // in minutes
-  exercises: any[];
-  isActive: boolean;
-}
-
-const mockSchedules: ScheduledPractice[] = [
-  {
-    id: '1',
-    title: 'Morning Practice',
-    dayOfWeek: 1, // Monday
-    startTime: '08:00',
-    duration: 30,
-    exercises: [
-      { title: 'Warm-up', duration: 5 },
-      { title: 'Chord Practice', duration: 15 },
-      { title: 'Scale Practice', duration: 10 }
-    ],
-    isActive: true
-  },
-  {
-    id: '2',
-    title: 'Evening Session',
-    dayOfWeek: 3, // Wednesday
-    startTime: '18:30',
-    duration: 45,
-    exercises: [
-      { title: 'Technique Practice', duration: 20 },
-      { title: 'Song Practice', duration: 25 }
-    ],
-    isActive: true
-  },
-  {
-    id: '3',
-    title: 'Weekend Practice',
-    dayOfWeek: 6, // Saturday
-    startTime: '10:00',
-    duration: 60,
-    exercises: [
-      { title: 'Scale Mastery', duration: 20 },
-      { title: 'Chord Progressions', duration: 20 },
-      { title: 'Song Learning', duration: 20 }
-    ],
-    isActive: false
-  }
-];
 
 const daysOfWeek = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ];
 
 export default function PracticeSchedule() {
-  const [schedules, setSchedules] = useState(mockSchedules);
+  const { schedules, setSchedules } = useSchedule();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<ScheduledPractice | null>(null);
-  const [newSchedule, setNewSchedule] = useState({
+  const [newSchedule, setNewSchedule] = useState<{
+    title: string;
+    dayOfWeek: number;
+    startTime: string;
+    duration: number;
+    exercises: { title: string; duration: number; type?: string }[];
+  }>({
     title: '',
     dayOfWeek: 1,
     startTime: '09:00',
@@ -130,7 +87,7 @@ export default function PracticeSchedule() {
         id: (schedules.length + 1).toString(),
         ...newSchedule,
         exercises: [
-          { title: 'Practice Session', duration: newSchedule.duration }
+          { title: 'Practice Session', duration: newSchedule.duration, type: 'custom' }
         ],
         isActive: true
       };

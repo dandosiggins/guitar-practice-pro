@@ -7,6 +7,7 @@ import Tuner from '@/components/tuner';
 import Practice from '@/components/practice';
 import PracticeSchedule from '@/components/practice-schedule';
 import PracticeHistory from '@/components/practice-history';
+import { ScheduleProvider } from '@/contexts/ScheduleContext';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('metronome');
@@ -33,12 +34,14 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-100">
-      <Header activeTab={activeTab} onTabChange={setActiveTab} />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {renderActiveComponent()}
-      </main>
-    </div>
+    <ScheduleProvider>
+      <div className="min-h-screen bg-[#0f172a] text-slate-100">
+        <Header activeTab={activeTab} onTabChange={setActiveTab} />
+        
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {renderActiveComponent()}
+        </main>
+      </div>
+    </ScheduleProvider>
   );
 }
