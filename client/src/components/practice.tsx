@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -102,6 +102,7 @@ export default function Practice() {
   const [currentTime, setCurrentTime] = useState(0);
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [newExercise, setNewExercise] = useState<{ title: string; duration: number | string; type: string }>({ title: '', duration: 10, type: 'custom' });
+  const durationInputRef = useRef<HTMLInputElement>(null);
 
   const completedExercises = exercises.filter(ex => ex.status === 'completed').length;
   const totalExercises = exercises.length;
@@ -453,37 +454,54 @@ export default function Practice() {
                         <div>
                           <label className="text-slate-300 text-sm font-medium block mb-2">Duration (minutes)</label>
                           <input
+                            ref={durationInputRef}
                             type="text"
                             inputMode="numeric"
-                            value={newExercise.duration}
+                            defaultValue={newExercise.duration}
                             onChange={(e) => {
                               const value = e.target.value;
+                              const cursorPosition = e.target.selectionStart;
+                              
                               // Allow empty string for clearing
                               if (value === '') {
                                 setNewExercise({...newExercise, duration: ''});
                                 return;
                               }
+                              
                               // Allow any numeric input while typing (including partial numbers)
                               if (/^\d*$/.test(value)) {
                                 setNewExercise({...newExercise, duration: value});
+                                
+                                // Restore cursor position after state update
+                                setTimeout(() => {
+                                  if (durationInputRef.current) {
+                                    durationInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+                                  }
+                                }, 0);
                               }
                             }}
                             onBlur={(e) => {
                               const value = e.target.value;
                               if (value === '' || isNaN(parseInt(value))) {
                                 setNewExercise({...newExercise, duration: 10});
+                                if (durationInputRef.current) {
+                                  durationInputRef.current.value = '10';
+                                }
                               } else {
                                 const numValue = parseInt(value);
+                                let finalValue = numValue;
                                 if (numValue < 1) {
-                                  setNewExercise({...newExercise, duration: 1});
+                                  finalValue = 1;
                                 } else if (numValue > 60) {
-                                  setNewExercise({...newExercise, duration: 60});
-                                } else {
-                                  setNewExercise({...newExercise, duration: numValue});
+                                  finalValue = 60;
+                                }
+                                setNewExercise({...newExercise, duration: finalValue});
+                                if (durationInputRef.current && finalValue !== numValue) {
+                                  durationInputRef.current.value = finalValue.toString();
                                 }
                               }
                             }}
-                            className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6366f1]"
+                            className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6366f1] cursor-text"
                             placeholder="10"
                             data-testid="input-exercise-duration"
                           />
