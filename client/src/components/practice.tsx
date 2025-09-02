@@ -453,7 +453,8 @@ export default function Practice() {
                         <div>
                           <label className="text-slate-300 text-sm font-medium block mb-2">Duration (minutes)</label>
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
                             value={newExercise.duration}
                             onChange={(e) => {
                               const value = e.target.value;
@@ -483,8 +484,6 @@ export default function Practice() {
                               }
                             }}
                             className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6366f1]"
-                            min="1"
-                            max="60"
                             placeholder="10"
                             data-testid="input-exercise-duration"
                           />
