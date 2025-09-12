@@ -103,3 +103,21 @@ export type InsertPracticeSchedule = z.infer<typeof insertPracticeScheduleSchema
 export type PracticeSchedule = typeof practiceSchedule.$inferSelect;
 export type InsertPracticeHistory = z.infer<typeof insertPracticeHistorySchema>;
 export type PracticeHistory = typeof practiceHistory.$inferSelect;
+
+// Quick Practice Presets (client-side schema)
+export const quickPresetExerciseSchema = z.object({
+  title: z.string().min(1, "Exercise title is required"),
+  duration: z.number().min(1, "Duration must be at least 1 minute"),
+  type: z.enum(['warmup', 'chords', 'scales', 'technique', 'theory', 'custom', 'songs', 'rhythm'])
+});
+
+export const quickPresetSchema = z.object({
+  id: z.string(),
+  title: z.string().min(1, "Preset title is required"),
+  description: z.string().optional(),
+  exercises: z.array(quickPresetExerciseSchema).min(1, "At least one exercise is required")
+});
+
+export type QuickPresetExercise = z.infer<typeof quickPresetExerciseSchema>;
+export type QuickPreset = z.infer<typeof quickPresetSchema>;
+export type InsertQuickPreset = Omit<QuickPreset, 'id'>;

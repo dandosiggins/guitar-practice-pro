@@ -1,8 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSchedule } from '@/contexts/ScheduleContext';
+import { useQuickPresets } from '@/hooks/use-quick-presets';
+import type { QuickPreset } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { nanoid } from 'nanoid';
+import { useToast } from '@/hooks/use-toast';
 import { 
   ClipboardList, 
   Play, 
@@ -17,7 +29,9 @@ import {
   Lightbulb,
   X,
   Edit,
-  Trash2
+  Trash2,
+  Settings,
+  Save
 } from 'lucide-react';
 
 interface Exercise {
@@ -27,6 +41,19 @@ interface Exercise {
   status: 'completed' | 'active' | 'pending';
   type: string;
 }
+
+// Form validation schema for preset management
+const presetFormSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  exercises: z.array(z.object({
+    title: z.string().min(1, "Exercise title is required"),
+    duration: z.number().min(1, "Duration must be at least 1 minute"),
+    type: z.enum(['warmup', 'chords', 'scales', 'technique', 'theory', 'custom', 'songs', 'rhythm'])
+  })).min(1, "At least one exercise is required")
+});
+
+type PresetFormData = z.infer<typeof presetFormSchema>;
 
 const mockExercises: Exercise[] = [
   {
@@ -105,6 +132,12 @@ export default function Practice() {
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [newExercise, setNewExercise] = useState<{ title: string; duration: number | string; type: string }>({ title: '', duration: 10, type: 'custom' });
   const { getTodaysSchedules } = useSchedule();
+  const { presets, createPreset, updatePreset, deletePreset } = useQuickPresets();
+  const { toast } = useToast();
+  
+  // Preset management state
+  const [showManagePresets, setShowManagePresets] = useState(false);
+  const [editingPreset, setEditingPreset] = useState<QuickPreset | null>(null);
   const [todaysSchedules, setTodaysSchedules] = useState(() => getTodaysSchedules());
   const durationInputRef = useRef<HTMLInputElement>(null);
 
@@ -136,13 +169,20 @@ export default function Practice() {
     }));
   };
 
-  const startQuickSession = (type: string) => {
-    console.log(`Starting ${type} session`);
-    // Reset to a fresh practice session
-    const sessionExercises = getSessionExercises(type);
+  const startQuickSession = (preset: QuickPreset) => {
+    console.log(`Starting ${preset.title} session`);
+    // Reset to a fresh practice session with preset exercises
+    const sessionExercises: Exercise[] = preset.exercises.map((ex, index) => ({
+      id: `preset-${index + 1}`,
+      title: ex.title,
+      duration: ex.duration,
+      status: index === 0 ? 'active' : 'pending',
+      type: ex.type
+    }));
     setExercises(sessionExercises);
     setSessionActive(true);
     setSessionPaused(false);
+    setCurrentTime(0);
   };
 
   const getSessionExercises = (type: string): Exercise[] => {
@@ -215,7 +255,10 @@ export default function Practice() {
       console.log('Saving practice session to history:', historyEntry);
       
       // For now, just log the completion
-      alert(`Session completed! ${completedExercises}/${totalExercises} exercises finished in ${totalDuration} minutes.`);
+      toast({
+        title: "Session completed!",
+        description: `${completedExercises}/${totalExercises} exercises finished in ${totalDuration} minutes.`
+      });
       
     } catch (error) {
       console.error('Failed to save practice session:', error);
@@ -275,6 +318,53 @@ export default function Practice() {
     setCurrentTime(0);
   };
 
+  const saveCurrentAsPreset = () => {
+    if (exercises.length === 0) {
+      toast({
+        title: "No exercises to save",
+        description: "Add some exercises to your session before saving as a preset",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const sessionTitle = exercises.length > 1 ? 'Mixed Practice Session' : exercises[0]?.title || 'Practice Session';
+    
+    // Handle duplicate titles by adding a number suffix
+    let finalTitle = `${sessionTitle} Preset`;
+    let counter = 1;
+    while (presets.some(p => p.title === finalTitle)) {
+      finalTitle = `${sessionTitle} Preset (${counter})`;
+      counter++;
+    }
+    
+    const validExerciseTypes = ['warmup', 'chords', 'scales', 'technique', 'theory', 'custom', 'songs', 'rhythm'] as const;
+    
+    const presetData = {
+      title: finalTitle,
+      description: 'Saved from current practice session',
+      exercises: exercises.map(ex => ({
+        title: ex.title,
+        duration: ex.duration,
+        type: validExerciseTypes.includes(ex.type as any) ? ex.type as typeof validExerciseTypes[number] : 'custom'
+      }))
+    };
+    
+    try {
+      createPreset(presetData);
+      toast({
+        title: "Preset saved successfully!",
+        description: `"${finalTitle}" has been added to your Quick Start presets`
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to save preset",
+        description: "Please try again",
+        variant: "destructive"
+      });
+    }
+  };
+
   const addExercise = () => {
     if (newExercise.title.trim()) {
       const exercise: Exercise = {
@@ -317,6 +407,7 @@ export default function Practice() {
   };
 
   return (
+    <>
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Practice Session */}
       <div className="lg:col-span-2 space-y-8">
@@ -465,7 +556,7 @@ export default function Practice() {
                         <Play className="text-white" size={16} />
                       ) : (
                         <span className="text-slate-400 text-sm font-bold">
-                          {parseInt(exercise.id)}
+                          {exercises.findIndex(ex => ex.id === exercise.id) + 1}
                         </span>
                       )}
                     </div>
@@ -718,24 +809,42 @@ export default function Practice() {
         {/* Quick Start */}
         <Card className="bg-dark-panel border-slate-700">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Quick Start</h3>
-            <div className="space-y-3">
-              {[
-                { type: 'warmup', title: '5-Minute Warm-up', description: 'Basic stretches and scales' },
-                { type: 'chords', title: '15-Minute Chord Practice', description: 'Focus on chord changes' },
-                { type: 'scales', title: '20-Minute Scale Session', description: 'Scale patterns and exercises' },
-                { type: 'technique', title: '30-Minute Technique', description: 'Advanced techniques and exercises' },
-                { type: 'theory', title: '25-Minute Theory Study', description: 'Music theory concepts and analysis' }
-              ].map(session => (
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">Quick Start</h3>
+              <div className="flex gap-2">
                 <Button
-                  key={session.type}
+                  variant="ghost"
+                  size="sm"
+                  onClick={saveCurrentAsPreset}
+                  className="text-slate-300 hover:text-white hover:bg-slate-700"
+                  data-testid="button-save-current-preset"
+                >
+                  <Save className="w-4 h-4 mr-1" />
+                  Save
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowManagePresets(true)}
+                  className="text-slate-300 hover:text-white hover:bg-slate-700"
+                  data-testid="button-manage-presets"
+                >
+                  <Settings className="w-4 h-4 mr-1" />
+                  Manage
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {presets.map(preset => (
+                <Button
+                  key={preset.id}
                   variant="ghost"
                   className="w-full text-left p-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-[#6366f1] transition-colors"
-                  onClick={() => startQuickSession(session.type)}
+                  onClick={() => startQuickSession(preset)}
                 >
                   <div>
-                    <div className="text-white font-medium">{session.title}</div>
-                    <div className="text-slate-400 text-xs">{session.description}</div>
+                    <div className="text-white font-medium">{preset.title}</div>
+                    <div className="text-slate-400 text-xs">{preset.description}</div>
                   </div>
                 </Button>
               ))}
@@ -768,7 +877,10 @@ export default function Practice() {
               onClick={() => {
                 console.log('Opening goal creation dialog');
                 // In a real app, this would open a modal or form
-                alert('Goal creation feature - coming soon!');
+                toast({
+                  title: "Coming soon!",
+                  description: "Goal creation feature will be available in a future update"
+                });
               }}
             >
               <Plus className="mr-2" size={16} />
@@ -824,5 +936,326 @@ export default function Practice() {
         </Card>
       </div>
     </div>
+    
+    {/* Manage Presets Dialog */}
+    <ManagePresetsDialog
+      open={showManagePresets}
+      onOpenChange={setShowManagePresets}
+      presets={presets}
+      createPreset={createPreset}
+      updatePreset={updatePreset}
+      deletePreset={deletePreset}
+    />
+    </>
+  );
+}
+
+// Preset Management Dialog Component
+function ManagePresetsDialog({ 
+  open, 
+  onOpenChange, 
+  presets, 
+  createPreset, 
+  updatePreset, 
+  deletePreset 
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  presets: QuickPreset[];
+  createPreset: (data: any) => void;
+  updatePreset: (id: string, data: any) => void;
+  deletePreset: (id: string) => void;
+}) {
+  const [editingPreset, setEditingPreset] = useState<QuickPreset | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  
+  const form = useForm<PresetFormData>({
+    resolver: zodResolver(presetFormSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      exercises: [{ title: '', duration: 10, type: 'custom' }]
+    }
+  });
+
+  const handleEdit = (preset: QuickPreset) => {
+    setEditingPreset(preset);
+    form.reset({
+      title: preset.title,
+      description: preset.description || '',
+      exercises: preset.exercises
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = (preset: QuickPreset) => {
+    if (confirm(`Delete preset "${preset.title}"?`)) {
+      deletePreset(preset.id);
+    }
+  };
+
+  const onSubmit = (data: PresetFormData) => {
+    try {
+      if (editingPreset) {
+        updatePreset(editingPreset.id, data);
+      } else {
+        createPreset(data);
+      }
+      setShowForm(false);
+      setEditingPreset(null);
+      form.reset();
+    } catch (error) {
+      console.error('Failed to save preset:', error);
+    }
+  };
+
+  const addExercise = () => {
+    const exercises = form.getValues('exercises');
+    form.setValue('exercises', [...exercises, { title: '', duration: 10, type: 'custom' }]);
+  };
+
+  const removeExercise = (index: number) => {
+    const exercises = form.getValues('exercises');
+    if (exercises.length > 1) {
+      form.setValue('exercises', exercises.filter((_, i) => i !== index));
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-dark-panel border-slate-700">
+        <DialogHeader>
+          <DialogTitle className="text-white">Manage Quick Start Presets</DialogTitle>
+        </DialogHeader>
+        
+        {!showForm ? (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-slate-300">Your presets</span>
+              <Button
+                onClick={() => setShowForm(true)}
+                className="bg-[#6366f1] hover:bg-[#6366f1]/80"
+                data-testid="button-add-preset"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Preset
+              </Button>
+            </div>
+            
+            <div className="space-y-3">
+              {presets.map(preset => (
+                <Card key={preset.id} className="bg-slate-800 border-slate-600">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-white">{preset.title}</h4>
+                        <p className="text-slate-400 text-sm">{preset.description}</p>
+                        <p className="text-slate-500 text-xs mt-1">
+                          {preset.exercises.length} exercises
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(preset)}
+                          className="text-slate-400 hover:text-white"
+                          data-testid={`button-edit-preset-${preset.id}`}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(preset)}
+                          className="text-slate-400 hover:text-red-400"
+                          data-testid={`button-delete-preset-${preset.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-white">
+                  {editingPreset ? 'Edit Preset' : 'Create New Preset'}
+                </h3>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditingPreset(null);
+                    form.reset();
+                  }}
+                  className="text-slate-400"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">Title</FormLabel>
+                    <FormControl>
+                      <Input {...field} className="bg-slate-700 border-slate-600 text-white" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">Description</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} className="bg-slate-700 border-slate-600 text-white" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <FormLabel className="text-white">Exercises</FormLabel>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={addExercise}
+                    className="text-[#6366f1] hover:text-[#6366f1]/80"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add Exercise
+                  </Button>
+                </div>
+                
+                {form.watch('exercises').map((exercise, index) => (
+                  <Card key={index} className="bg-slate-700 border-slate-600 mb-3">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-white font-medium">Exercise {index + 1}</span>
+                        {form.watch('exercises').length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeExercise(index)}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <FormField
+                          control={form.control}
+                          name={`exercises.${index}.title`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-slate-300">Title</FormLabel>
+                              <FormControl>
+                                <Input {...field} className="bg-slate-600 border-slate-500 text-white" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name={`exercises.${index}.duration`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-slate-300">Duration (min)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  min="1"
+                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                                  className="bg-slate-600 border-slate-500 text-white"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name={`exercises.${index}.type`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-slate-300">Type</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="bg-slate-600 border-slate-500 text-white">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="bg-slate-700 border-slate-600">
+                                  <SelectItem value="custom">Custom</SelectItem>
+                                  <SelectItem value="warmup">Warm-up</SelectItem>
+                                  <SelectItem value="chords">Chords</SelectItem>
+                                  <SelectItem value="scales">Scales</SelectItem>
+                                  <SelectItem value="technique">Technique</SelectItem>
+                                  <SelectItem value="theory">Theory</SelectItem>
+                                  <SelectItem value="songs">Songs</SelectItem>
+                                  <SelectItem value="rhythm">Rhythm</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditingPreset(null);
+                    form.reset();
+                  }}
+                  className="text-slate-400"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-[#6366f1] hover:bg-[#6366f1]/80"
+                  data-testid="button-save-preset"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {editingPreset ? 'Update' : 'Create'} Preset
+                </Button>
+              </div>
+            </form>
+          </Form>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
