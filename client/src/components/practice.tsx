@@ -166,6 +166,12 @@ export default function Practice() {
         { id: '2', title: 'Legato Practice', duration: 7, status: 'pending', type: 'technique' },
         { id: '3', title: 'String Skipping', duration: 8, status: 'pending', type: 'technique' },
         { id: '4', title: 'Vibrato Exercise', duration: 7, status: 'pending', type: 'technique' }
+      ],
+      theory: [
+        { id: '1', title: 'Circle of Fifths Study', duration: 10, status: 'active', type: 'theory' },
+        { id: '2', title: 'Interval Recognition', duration: 8, status: 'pending', type: 'theory' },
+        { id: '3', title: 'Chord Construction', duration: 12, status: 'pending', type: 'theory' },
+        { id: '4', title: 'Scale Modes Analysis', duration: 15, status: 'pending', type: 'theory' }
       ]
     };
     return baseExercises[type] || mockExercises;
@@ -301,7 +307,11 @@ export default function Practice() {
       'Alternate Picking': 'Focus on clean alternate picking technique',
       'Legato Practice': 'Practice hammer-ons and pull-offs for smooth playing',
       'String Skipping': 'Advanced technique for skipping strings accurately',
-      'Vibrato Exercise': 'Develop controlled vibrato for expression'
+      'Vibrato Exercise': 'Develop controlled vibrato for expression',
+      'Circle of Fifths Study': 'Learn the relationships between keys and chord progressions',
+      'Interval Recognition': 'Train your ear to identify musical intervals',
+      'Chord Construction': 'Study how chords are built from scales and intervals',
+      'Scale Modes Analysis': 'Understand the modes and their characteristic sounds'
     };
     return descriptions[title] || `Practice ${type} techniques with focus and precision`;
   };
@@ -570,6 +580,7 @@ export default function Practice() {
                             <option value="chords">Chords</option>
                             <option value="scales">Scales</option>
                             <option value="technique">Technique</option>
+                            <option value="theory">Theory</option>
                             <option value="songs">Songs</option>
                             <option value="warmup">Warm-up</option>
                             <option value="rhythm">Rhythm</option>
@@ -713,7 +724,8 @@ export default function Practice() {
                 { type: 'warmup', title: '5-Minute Warm-up', description: 'Basic stretches and scales' },
                 { type: 'chords', title: '15-Minute Chord Practice', description: 'Focus on chord changes' },
                 { type: 'scales', title: '20-Minute Scale Session', description: 'Scale patterns and exercises' },
-                { type: 'technique', title: '30-Minute Technique', description: 'Advanced techniques and exercises' }
+                { type: 'technique', title: '30-Minute Technique', description: 'Advanced techniques and exercises' },
+                { type: 'theory', title: '25-Minute Theory Study', description: 'Music theory concepts and analysis' }
               ].map(session => (
                 <Button
                   key={session.type}
