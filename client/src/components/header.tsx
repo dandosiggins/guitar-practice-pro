@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { 
   Clock, 
@@ -9,7 +10,8 @@ import {
   Calendar,
   History,
   Menu,
-  Guitar
+  Guitar,
+  Library
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -27,22 +29,52 @@ const tabs = [
   { id: 'history', label: 'History', icon: History }
 ];
 
+const navigationLinks = [
+  { href: '/', label: 'Practice Tools', icon: Guitar, id: 'home' },
+  { href: '/songs', label: 'Song Library', icon: Library, id: 'songs' }
+];
+
 export default function Header({ activeTab, onTabChange }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [location] = useLocation();
 
   return (
     <header className="bg-dark-panel border-b border-slate-700 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-[#6366f1] to-[#f59e0b] rounded-lg flex items-center justify-center">
-              <Guitar className="text-white text-lg" size={20} />
+          <Link href="/">
+            <div className="flex items-center space-x-3 cursor-pointer">
+              <div className="w-8 h-8 bg-gradient-to-r from-[#6366f1] to-[#f59e0b] rounded-lg flex items-center justify-center">
+                <Guitar className="text-white text-lg" size={20} />
+              </div>
+              <h1 className="text-xl font-bold text-white">Guitar Practice Pro</h1>
             </div>
-            <h1 className="text-xl font-bold text-white">Guitar Practice Pro</h1>
-          </div>
+          </Link>
           
           <nav className="hidden md:flex space-x-1">
-            {tabs.map((tab) => {
+            {/* Navigation Links */}
+            {navigationLinks.map((link) => {
+              const Icon = link.icon;
+              const isActive = location === link.href;
+              return (
+                <Link key={link.id} href={link.href}>
+                  <Button
+                    variant={isActive ? "default" : "ghost"}
+                    className={`px-4 py-2 font-medium transition-colors ${
+                      isActive
+                        ? 'bg-[#6366f1] text-white hover:bg-[#6366f1]/80'
+                        : 'text-slate-300 hover:text-white hover:bg-slate-700'
+                    }`}
+                  >
+                    <Icon className="mr-2" size={16} />
+                    {link.label}
+                  </Button>
+                </Link>
+              );
+            })}
+            
+            {/* Show internal tabs only on home page */}
+            {location === '/' && tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <Button
@@ -77,7 +109,30 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
       {mobileMenuOpen && (
         <div className="md:hidden bg-dark-panel border-t border-slate-700">
           <div className="px-4 py-2 space-y-1">
-            {tabs.map((tab) => {
+            {/* Navigation Links */}
+            {navigationLinks.map((link) => {
+              const Icon = link.icon;
+              const isActive = location === link.href;
+              return (
+                <Link key={link.id} href={link.href}>
+                  <Button
+                    variant={isActive ? "default" : "ghost"}
+                    className={`w-full justify-start px-4 py-3 font-medium transition-colors ${
+                      isActive
+                        ? 'bg-[#6366f1] text-white hover:bg-[#6366f1]/80'
+                        : 'text-slate-300 hover:text-white hover:bg-slate-700'
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Icon className="mr-2" size={16} />
+                    {link.label}
+                  </Button>
+                </Link>
+              );
+            })}
+            
+            {/* Show internal tabs only on home page */}
+            {location === '/' && tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <Button
