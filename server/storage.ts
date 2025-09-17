@@ -10,7 +10,13 @@ import {
   type PracticeSchedule,
   type InsertPracticeSchedule,
   type PracticeHistory,
-  type InsertPracticeHistory
+  type InsertPracticeHistory,
+  type Song,
+  type InsertSong,
+  type SongCollection,
+  type InsertSongCollection,
+  type SongPracticeSession,
+  type InsertSongPracticeSession
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -39,6 +45,28 @@ export interface IStorage {
   createPracticeHistoryEntry(history: InsertPracticeHistory): Promise<PracticeHistory>;
   getUserPracticeHistory(userId: string, limit?: number, offset?: number): Promise<PracticeHistory[]>;
   getPracticeStats(userId: string, days: number): Promise<any>;
+  
+  // Song management
+  createSong(song: InsertSong): Promise<Song>;
+  getSong(id: string): Promise<Song | undefined>;
+  searchSongs(query: string, filters?: { genre?: string; difficulty?: number; artist?: string }): Promise<Song[]>;
+  updateSong(id: string, updates: Partial<Song>): Promise<Song | undefined>;
+  deleteSong(id: string): Promise<boolean>;
+  getSongBySpotifyId(spotifyId: string): Promise<Song | undefined>;
+  
+  // Song collection management
+  createSongCollection(collection: InsertSongCollection): Promise<SongCollection>;
+  getSongCollection(id: string): Promise<SongCollection | undefined>;
+  getUserSongCollections(userId?: string): Promise<SongCollection[]>;
+  updateSongCollection(id: string, updates: Partial<SongCollection>): Promise<SongCollection | undefined>;
+  deleteSongCollection(id: string): Promise<boolean>;
+  addSongToCollection(collectionId: string, songId: string): Promise<boolean>;
+  removeSongFromCollection(collectionId: string, songId: string): Promise<boolean>;
+  
+  // Song practice session management
+  createSongPracticeSession(session: InsertSongPracticeSession): Promise<SongPracticeSession>;
+  getUserSongPracticeSessions(userId: string, songId?: string): Promise<SongPracticeSession[]>;
+  updateSongPracticeSession(id: string, updates: Partial<SongPracticeSession>): Promise<SongPracticeSession | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -48,6 +76,9 @@ export class MemStorage implements IStorage {
   private chordProgressions: Map<string, ChordProgression>;
   private practiceSchedules: Map<string, PracticeSchedule>;
   private practiceHistory: Map<string, PracticeHistory>;
+  private songs: Map<string, Song>;
+  private songCollections: Map<string, SongCollection>;
+  private songPracticeSessions: Map<string, SongPracticeSession>;
 
   constructor() {
     this.users = new Map();
@@ -56,6 +87,9 @@ export class MemStorage implements IStorage {
     this.chordProgressions = new Map();
     this.practiceSchedules = new Map();
     this.practiceHistory = new Map();
+    this.songs = new Map();
+    this.songCollections = new Map();
+    this.songPracticeSessions = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -231,6 +265,169 @@ export class MemStorage implements IStorage {
       averageCompletionRate: Math.round(averageCompletionRate * 100),
       averageSessionLength: totalSessions > 0 ? Math.round(totalMinutes / totalSessions) : 0
     };
+  }
+
+  // Song management methods
+  async createSong(insertSong: InsertSong): Promise<Song> {
+    const id = randomUUID();
+    const song: Song = {
+      ...insertSong,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      album: insertSong.album || null,
+      genre: insertSong.genre || null,
+      key: insertSong.key || null,
+      tempo: insertSong.tempo || null,
+      duration: insertSong.duration || null,
+      spotifyId: insertSong.spotifyId || null,
+      chordProgression: insertSong.chordProgression || null,
+      lyrics: insertSong.lyrics || null,
+      tabs: insertSong.tabs || null,
+      notes: insertSong.notes || null,
+      timeSignature: insertSong.timeSignature || "4/4",
+    };
+    this.songs.set(id, song);
+    return song;
+  }
+
+  async getSong(id: string): Promise<Song | undefined> {
+    return this.songs.get(id);
+  }
+
+  async searchSongs(query: string, filters?: { genre?: string; difficulty?: number; artist?: string }): Promise<Song[]> {
+    const allSongs = Array.from(this.songs.values());
+    const lowerQuery = query.toLowerCase();
+    
+    return allSongs.filter(song => {
+      // Text search
+      const matchesQuery = !query || 
+        song.title.toLowerCase().includes(lowerQuery) ||
+        song.artist.toLowerCase().includes(lowerQuery) ||
+        (song.album && song.album.toLowerCase().includes(lowerQuery));
+      
+      // Filter by genre
+      const matchesGenre = !filters?.genre || song.genre === filters.genre;
+      
+      // Filter by difficulty
+      const matchesDifficulty = !filters?.difficulty || song.difficulty === filters.difficulty;
+      
+      // Filter by artist
+      const matchesArtist = !filters?.artist || song.artist.toLowerCase().includes(filters.artist.toLowerCase());
+      
+      return matchesQuery && matchesGenre && matchesDifficulty && matchesArtist;
+    });
+  }
+
+  async updateSong(id: string, updates: Partial<Song>): Promise<Song | undefined> {
+    const song = this.songs.get(id);
+    if (!song) return undefined;
+    
+    const updated = { ...song, ...updates, updatedAt: new Date() };
+    this.songs.set(id, updated);
+    return updated;
+  }
+
+  async deleteSong(id: string): Promise<boolean> {
+    return this.songs.delete(id);
+  }
+
+  async getSongBySpotifyId(spotifyId: string): Promise<Song | undefined> {
+    return Array.from(this.songs.values()).find(song => song.spotifyId === spotifyId);
+  }
+
+  // Song collection management methods
+  async createSongCollection(insertCollection: InsertSongCollection): Promise<SongCollection> {
+    const id = randomUUID();
+    const collection: SongCollection = {
+      ...insertCollection,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      description: insertCollection.description || null,
+      category: insertCollection.category || null,
+      userId: insertCollection.userId || null,
+      isPublic: insertCollection.isPublic || false,
+    };
+    this.songCollections.set(id, collection);
+    return collection;
+  }
+
+  async getSongCollection(id: string): Promise<SongCollection | undefined> {
+    return this.songCollections.get(id);
+  }
+
+  async getUserSongCollections(userId?: string): Promise<SongCollection[]> {
+    return Array.from(this.songCollections.values()).filter(collection =>
+      userId ? collection.userId === userId || collection.isPublic : collection.isPublic
+    );
+  }
+
+  async updateSongCollection(id: string, updates: Partial<SongCollection>): Promise<SongCollection | undefined> {
+    const collection = this.songCollections.get(id);
+    if (!collection) return undefined;
+    
+    const updated = { ...collection, ...updates, updatedAt: new Date() };
+    this.songCollections.set(id, updated);
+    return updated;
+  }
+
+  async deleteSongCollection(id: string): Promise<boolean> {
+    return this.songCollections.delete(id);
+  }
+
+  async addSongToCollection(collectionId: string, songId: string): Promise<boolean> {
+    const collection = this.songCollections.get(collectionId);
+    if (!collection) return false;
+    
+    const songIds = Array.isArray(collection.songIds) ? collection.songIds : [];
+    if (!songIds.includes(songId)) {
+      songIds.push(songId);
+      await this.updateSongCollection(collectionId, { songIds });
+    }
+    return true;
+  }
+
+  async removeSongFromCollection(collectionId: string, songId: string): Promise<boolean> {
+    const collection = this.songCollections.get(collectionId);
+    if (!collection) return false;
+    
+    const songIds = Array.isArray(collection.songIds) ? collection.songIds : [];
+    const filteredIds = songIds.filter(id => id !== songId);
+    await this.updateSongCollection(collectionId, { songIds: filteredIds });
+    return true;
+  }
+
+  // Song practice session management methods
+  async createSongPracticeSession(insertSession: InsertSongPracticeSession): Promise<SongPracticeSession> {
+    const id = randomUUID();
+    const session: SongPracticeSession = {
+      ...insertSession,
+      id,
+      createdAt: new Date(),
+      tempo: insertSession.tempo || null,
+      sections: insertSession.sections || null,
+      notes: insertSession.notes || null,
+      rating: insertSession.rating || null,
+      completed: insertSession.completed || true,
+    };
+    this.songPracticeSessions.set(id, session);
+    return session;
+  }
+
+  async getUserSongPracticeSessions(userId: string, songId?: string): Promise<SongPracticeSession[]> {
+    return Array.from(this.songPracticeSessions.values()).filter(session =>
+      session.userId === userId && (!songId || session.songId === songId)
+    );
+  }
+
+  async updateSongPracticeSession(id: string, updates: Partial<SongPracticeSession>): Promise<SongPracticeSession | undefined> {
+    const session = this.songPracticeSessions.get(id);
+    if (!session) return undefined;
+    
+    const updated = { ...session, ...updates };
+    this.songPracticeSessions.set(id, updated);
+    return updated;
   }
 }
 
