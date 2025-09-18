@@ -13,10 +13,11 @@ import {
   Guitar,
   Library
 } from 'lucide-react';
+import { useHomeTab } from '@/pages/home';
 
 interface HeaderProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
 const tabs = [
@@ -37,6 +38,11 @@ const navigationLinks = [
 export default function Header({ activeTab, onTabChange }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [location] = useLocation();
+  const homeTabContext = useHomeTab();
+
+  // Use context tab state when on home page, otherwise use props
+  const currentActiveTab = location === '/' && homeTabContext ? homeTabContext.activeTab : activeTab;
+  const currentOnTabChange = location === '/' && homeTabContext ? homeTabContext.setActiveTab : onTabChange;
 
   return (
     <header className="bg-dark-panel border-b border-slate-700 sticky top-0 z-50">
@@ -74,18 +80,18 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
             })}
             
             {/* Show internal tabs only on home page */}
-            {location === '/' && tabs.map((tab) => {
+            {location === '/' && currentActiveTab && currentOnTabChange && tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <Button
                   key={tab.id}
-                  variant={activeTab === tab.id ? "default" : "ghost"}
+                  variant={currentActiveTab === tab.id ? "default" : "ghost"}
                   className={`px-4 py-2 font-medium transition-colors ${
-                    activeTab === tab.id
+                    currentActiveTab === tab.id
                       ? 'bg-[#6366f1] text-white hover:bg-[#6366f1]/80'
                       : 'text-slate-300 hover:text-white hover:bg-slate-700'
                   }`}
-                  onClick={() => onTabChange(tab.id)}
+                  onClick={() => currentOnTabChange(tab.id)}
                 >
                   <Icon className="mr-2" size={16} />
                   {tab.label}
@@ -132,19 +138,19 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
             })}
             
             {/* Show internal tabs only on home page */}
-            {location === '/' && tabs.map((tab) => {
+            {location === '/' && currentActiveTab && currentOnTabChange && tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <Button
                   key={tab.id}
-                  variant={activeTab === tab.id ? "default" : "ghost"}
+                  variant={currentActiveTab === tab.id ? "default" : "ghost"}
                   className={`w-full justify-start px-4 py-3 font-medium transition-colors ${
-                    activeTab === tab.id
+                    currentActiveTab === tab.id
                       ? 'bg-[#6366f1] text-white hover:bg-[#6366f1]/80'
                       : 'text-slate-300 hover:text-white hover:bg-slate-700'
                   }`}
                   onClick={() => {
-                    onTabChange(tab.id);
+                    currentOnTabChange(tab.id);
                     setMobileMenuOpen(false);
                   }}
                 >

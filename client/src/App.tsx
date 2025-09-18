@@ -3,9 +3,11 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Home from "@/pages/home";
+import Header from "@/components/header";
+import Home, { HomeTabContext } from "@/pages/home";
 import SongsPage from "@/pages/songs";
 import NotFound from "@/pages/not-found";
+import { useState } from "react";
 
 function Router() {
   return (
@@ -18,11 +20,18 @@ function Router() {
 }
 
 function App() {
+  const [activeTab, setActiveTab] = useState('metronome');
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <HomeTabContext.Provider value={{ activeTab, setActiveTab }}>
+          <div className="min-h-screen bg-[#0f172a] text-slate-100">
+            <Header />
+            <Toaster />
+            <Router />
+          </div>
+        </HomeTabContext.Provider>
       </TooltipProvider>
     </QueryClientProvider>
   );

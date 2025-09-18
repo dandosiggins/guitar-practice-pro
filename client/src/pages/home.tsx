@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import Header from '@/components/header';
+import { useState, createContext, useContext } from 'react';
 import Metronome from '@/components/metronome';
 import ChordLibrary from '@/components/chord-library';
 import Scales from '@/components/scales';
@@ -9,8 +8,24 @@ import PracticeSchedule from '@/components/practice-schedule';
 import PracticeHistory from '@/components/practice-history';
 import { ScheduleProvider } from '@/contexts/ScheduleContext';
 
+// Context for sharing tab state with global header
+export const HomeTabContext = createContext<{
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+} | null>(null);
+
+export const useHomeTab = () => {
+  const context = useContext(HomeTabContext);
+  return context;
+};
+
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('metronome');
+  // Get tab state from global context
+  const homeTabContext = useHomeTab();
+  if (!homeTabContext) {
+    throw new Error('Home component must be used within HomeTabContext');
+  }
+  const { activeTab, setActiveTab } = homeTabContext;
 
   const renderActiveComponent = () => {
     switch (activeTab) {
@@ -35,13 +50,9 @@ export default function Home() {
 
   return (
     <ScheduleProvider>
-      <div className="min-h-screen bg-[#0f172a] text-slate-100">
-        <Header activeTab={activeTab} onTabChange={setActiveTab} />
-        
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {renderActiveComponent()}
-        </main>
-      </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {renderActiveComponent()}
+      </main>
     </ScheduleProvider>
   );
 }
