@@ -8,6 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { 
   Music, 
   Search, 
@@ -19,7 +24,8 @@ import {
   Filter,
   Heart,
   ExternalLink,
-  Shuffle
+  Shuffle,
+  Edit
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +37,16 @@ interface SearchFilters {
   artist: string;
 }
 
+// Form validation schema for creating collections
+const createCollectionSchema = z.object({
+  name: z.string().min(1, "Collection name is required").max(100, "Name must be less than 100 characters"),
+  description: z.string().optional(),
+  category: z.enum(['genre', 'difficulty', 'artist', 'custom']).optional(),
+  isPublic: z.boolean().default(false)
+});
+
+type CreateCollectionFormData = z.infer<typeof createCollectionSchema>;
+
 export default function SongsPage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,6 +57,7 @@ export default function SongsPage() {
   });
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [showAddSong, setShowAddSong] = useState(false);
+  const [showCreateCollection, setShowCreateCollection] = useState(false);
   const [activeTab, setActiveTab] = useState('library');
 
   // Fetch songs with search and filters
@@ -66,6 +83,13 @@ export default function SongsPage() {
   // Fetch song collections
   const { data: collections = [], isLoading: collectionsLoading } = useQuery<SongCollection[]>({
     queryKey: ['/api/song-collections'],
+    queryFn: async () => {
+      const response = await fetch('/api/song-collections');
+      if (!response.ok) {
+        throw new Error('Failed to fetch song collections');
+      }
+      return response.json();
+    },
     enabled: activeTab === 'collections'
   });
 
@@ -107,6 +131,31 @@ export default function SongsPage() {
     }
   });
 
+  // Create collection mutation
+  const createCollectionMutation = useMutation({
+    mutationFn: async (collectionData: CreateCollectionFormData) => {
+      return apiRequest('POST', '/api/song-collections', {
+        ...collectionData,
+        songIds: [] // Start with empty collection
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/song-collections'] });
+      setShowCreateCollection(false);
+      toast({
+        title: "Collection created!",
+        description: "Your new song collection has been created"
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to create collection",
+        description: "Please try again",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
@@ -128,6 +177,25 @@ export default function SongsPage() {
 
   const handleAddFromSpotify = (track: any) => {
     addSongFromSpotifyMutation.mutate(track);
+  };
+
+  // Form for creating collections
+  const createCollectionForm = useForm<CreateCollectionFormData>({
+    resolver: zodResolver(createCollectionSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      category: 'custom',
+      isPublic: true // Make collections public by default since there's no user authentication
+    }
+  });
+
+  const handleCreateCollection = () => {
+    setShowCreateCollection(true);
+  };
+
+  const onCreateCollectionSubmit = (data: CreateCollectionFormData) => {
+    createCollectionMutation.mutate(data);
   };
 
   const getDifficultyColor = (difficulty: number | null) => {
@@ -452,7 +520,11 @@ export default function SongsPage() {
               <h2 className="text-xl font-bold text-white">Song Collections</h2>
               <p className="text-slate-400">Organize your songs into practice collections</p>
             </div>
-            <Button className="bg-blue-600 hover:bg-blue-500" data-testid="button-create-collection">
+            <Button 
+              onClick={handleCreateCollection}
+              className="bg-blue-600 hover:bg-blue-500" 
+              data-testid="button-create-collection"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Create Collection
             </Button>
@@ -469,12 +541,72 @@ export default function SongsPage() {
                 </Card>
               ))}
             </div>
+          ) : collections.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {collections.map((collection: SongCollection) => (
+                <Card 
+                  key={collection.id} 
+                  className="bg-slate-800 border-slate-700 hover:border-slate-600 transition-colors cursor-pointer"
+                  data-testid={`card-collection-${collection.id}`}
+                >
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg text-white flex items-center justify-between">
+                      <span className="truncate">{collection.name}</span>
+                      <Users className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                    </CardTitle>
+                    {collection.description && (
+                      <p className="text-slate-400 text-sm">{collection.description}</p>
+                    )}
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {collection.category && (
+                        <Badge variant="outline" className="border-slate-600 text-slate-300 text-xs">
+                          {collection.category}
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="border-slate-600 text-slate-300 text-xs">
+                        {(collection.songIds as string[])?.length || 0} songs
+                      </Badge>
+                      {collection.isPublic && (
+                        <Badge variant="outline" className="border-green-600 text-green-400 text-xs">
+                          Public
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-2 mt-4">
+                      <Button 
+                        size="sm" 
+                        className="flex-1 bg-blue-600 hover:bg-blue-500"
+                        data-testid={`button-open-collection-${collection.id}`}
+                      >
+                        <Music className="w-4 h-4 mr-1" />
+                        Open
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                        data-testid={`button-edit-collection-${collection.id}`}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           ) : (
             <div className="text-center py-12">
               <Users className="w-12 h-12 text-slate-600 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-slate-300 mb-2">No collections yet</h3>
               <p className="text-slate-500 mb-4">Create collections to organize your songs by genre, difficulty, or practice focus</p>
-              <Button className="bg-blue-600 hover:bg-blue-500" data-testid="button-create-first-collection">
+              <Button 
+                onClick={handleCreateCollection}
+                className="bg-blue-600 hover:bg-blue-500" 
+                data-testid="button-create-first-collection"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Create Your First Collection
               </Button>
@@ -540,6 +672,100 @@ export default function SongsPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Create Collection Dialog */}
+      <Dialog open={showCreateCollection} onOpenChange={setShowCreateCollection}>
+        <DialogContent className="max-w-md bg-slate-800 border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Create New Collection</DialogTitle>
+          </DialogHeader>
+          <Form {...createCollectionForm}>
+            <form onSubmit={createCollectionForm.handleSubmit(onCreateCollectionSubmit)} className="space-y-4">
+              <FormField
+                control={createCollectionForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">Collection Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter collection name..."
+                        {...field}
+                        className="bg-slate-900 border-slate-700 text-white"
+                        data-testid="input-collection-name"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={createCollectionForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">Description (Optional)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Describe your collection..."
+                        {...field}
+                        className="bg-slate-900 border-slate-700 text-white"
+                        data-testid="textarea-collection-description"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={createCollectionForm.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">Category</FormLabel>
+                    <FormControl>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="bg-slate-900 border-slate-700 text-white" data-testid="select-collection-category">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-800 border-slate-700">
+                          <SelectItem value="custom">Custom</SelectItem>
+                          <SelectItem value="genre">Genre</SelectItem>
+                          <SelectItem value="difficulty">Difficulty</SelectItem>
+                          <SelectItem value="artist">Artist</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowCreateCollection(false)}
+                  className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700"
+                  data-testid="button-cancel-collection"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createCollectionMutation.isPending}
+                  className="flex-1 bg-blue-600 hover:bg-blue-500"
+                  data-testid="button-submit-collection"
+                >
+                  {createCollectionMutation.isPending ? 'Creating...' : 'Create Collection'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
