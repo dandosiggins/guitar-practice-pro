@@ -45,7 +45,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
   const currentOnTabChange = location === '/' && homeTabContext ? homeTabContext.setActiveTab : onTabChange;
 
   return (
-    <header className="bg-dark-panel border-b border-slate-700 sticky top-0 z-50">
+    <header className="bg-dark-panel border-b border-slate-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link href="/">
@@ -57,7 +57,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
             </div>
           </Link>
           
-          <nav className="hidden md:flex space-x-1">
+          <nav className="hidden md:flex space-x-0.5">
             {/* Navigation Links */}
             {navigationLinks.map((link) => {
               const Icon = link.icon;
@@ -66,7 +66,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
                 <Link key={link.id} href={link.href}>
                   <Button
                     variant={isActive ? "default" : "ghost"}
-                    className={`px-4 py-2 font-medium transition-colors ${
+                    className={`px-2 py-1 font-medium transition-colors ${
                       isActive
                         ? 'bg-[#6366f1] text-white hover:bg-[#6366f1]/80'
                         : 'text-slate-300 hover:text-white hover:bg-slate-700'
@@ -86,7 +86,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
                 <Button
                   key={tab.id}
                   variant={currentActiveTab === tab.id ? "default" : "ghost"}
-                  className={`px-4 py-2 font-medium transition-colors ${
+                  className={`px-2 py-1 text-sm font-medium transition-colors ${
                     currentActiveTab === tab.id
                       ? 'bg-[#6366f1] text-white hover:bg-[#6366f1]/80'
                       : 'text-slate-300 hover:text-white hover:bg-slate-700'
