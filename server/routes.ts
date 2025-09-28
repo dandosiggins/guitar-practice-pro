@@ -243,18 +243,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Convert Spotify track to our song format
       let songData = convertSpotifyTrackToSong(spotifyTrack);
       
-      // Try to get audio features from Spotify
-      try {
-        const audioFeatures = await getTrackAudioFeatures(spotifyTrack.id);
-        songData = {
-          ...songData,
-          key: audioFeatures.key || null,
-          tempo: audioFeatures.tempo || null,
-          timeSignature: audioFeatures.timeSignature || null,
-        };
-      } catch (audioError) {
-        console.warn('Could not fetch audio features:', audioError);
-      }
+// Try to get audio features from Spotify
+try {
+  const audioFeatures = await getTrackAudioFeatures(spotifyTrack.id);
+  songData = {
+    ...songData,
+    key: audioFeatures.key || null,
+    tempo: audioFeatures.tempo || null,
+    timeSignature: audioFeatures.timeSignature || null,
+  };
+} catch (audioError) {
+  console.warn('Could not fetch audio features:', audioError);
+  // Continue without audio features - tempo and key will remain null
+}
       
       // Validate and save
       const validatedData = insertSongSchema.parse(songData);

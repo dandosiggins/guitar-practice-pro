@@ -1,81 +1,41 @@
 import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 
-let connectionSettings: any;
+let spotifyClient: SpotifyApi | null = null;
 
-async function getAccessToken() {
-  if (connectionSettings && connectionSettings.settings.expires_at && new Date(connectionSettings.settings.expires_at).getTime() > Date.now()) {
-    return connectionSettings.settings.access_token;
-  }
-  
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME
-  const xReplitToken = process.env.REPL_IDENTITY 
-    ? 'repl ' + process.env.REPL_IDENTITY 
-    : process.env.WEB_REPL_RENEWAL 
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
-    : null;
-
-  if (!xReplitToken) {
-    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
-  }
-
-  connectionSettings = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=spotify',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
-      }
-    }
-  ).then(res => res.json()).then(data => data.items?.[0]);
-   const refreshToken =
-    connectionSettings?.settings?.oauth?.credentials?.refresh_token;
-  const accessToken = connectionSettings?.settings?.access_token || connectionSettings.settings?.oauth?.credentials?.access_token;
-const clientId = connectionSettings?.settings?.oauth?.credentials?.client_id;
-  const expiresIn = connectionSettings.settings?.oauth?.credentials?.expires_in;
-  if (!connectionSettings || (!accessToken || !clientId || !refreshToken)) {
-    throw new Error('Spotify not connected');
-  }
-  return {accessToken, clientId, refreshToken, expiresIn};
-}
-
-// WARNING: Never cache this client.
-// Access tokens expire, so a new client must be created each time.
-// Always call this function again to get a fresh client.
 export async function getUncachableSpotifyClient() {
-  const {accessToken, clientId, refreshToken, expiresIn} = await getAccessToken();
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
-  const spotify = SpotifyApi.withAccessToken(clientId, {
-    access_token: accessToken,
-    token_type: "Bearer",
-    expires_in: expiresIn || 3600,
-    refresh_token: refreshToken,
-  });
+  if (!clientId || !clientSecret) {
+    throw new Error('Spotify credentials not configured');
+  }
 
+  // Use client credentials flow for search (no user login required)
+  const spotify = SpotifyApi.withClientCredentials(clientId, clientSecret);
   return spotify;
 }
 
-// Helper function to convert Spotify track to our song format
+// Keep your existing helper functions
 export function convertSpotifyTrackToSong(track: any) {
   return {
     title: track.name,
     artist: track.artists.map((artist: any) => artist.name).join(', '),
     album: track.album?.name || null,
-    genre: null, // Spotify doesn't provide genre in track object
-    key: null, // Will be populated from audio features
+    genre: null,
+    key: null,
     capo: 0,
-    tempo: null, // Will be populated from audio features
-    timeSignature: "4/4", // Will be populated from audio features
-    difficulty: 1, // Default, can be set manually
-    duration: Math.round(track.duration_ms / 1000), // Convert to seconds
+    tempo: null,
+    timeSignature: "4/4",
+    difficulty: 1,
+    duration: Math.round(track.duration_ms / 1000),
     spotifyId: track.id,
-    chordProgression: null, // To be populated separately
+    chordProgression: null,
     lyrics: null,
     tabs: null,
     notes: null,
   };
 }
 
-// Helper function to get audio features for a track
 export async function getTrackAudioFeatures(trackId: string) {
   const spotify = await getUncachableSpotifyClient();
   const features = await spotify.tracks.audioFeatures(trackId);
@@ -90,9 +50,8 @@ export async function getTrackAudioFeatures(trackId: string) {
   };
 }
 
-// Convert Spotify key number to music notation
 function getKeyFromSpotify(key: number, mode: number): string {
   const keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const keyName = keys[key] || 'C';
-  return mode === 0 ? `${keyName}m` : keyName; // 0 = minor, 1 = major
+  return mode === 0 ? `${keyName}m` : keyName;
 }

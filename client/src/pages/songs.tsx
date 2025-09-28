@@ -109,27 +109,40 @@ export default function SongsPage() {
   });
 
   // Add song from Spotify
-  const addSongFromSpotifyMutation = useMutation({
-    mutationFn: async (spotifyTrack: any) => {
-      return apiRequest('/api/songs/from-spotify', 'POST', {
+const addSongFromSpotifyMutation = useMutation({
+  mutationFn: async (spotifyTrack: any) => {
+    console.log('=== Mutation function started ===');
+    console.log('Input track:', spotifyTrack);
+    
+    try {
+      console.log('Making API request...');
+      const response = await apiRequest('POST', '/api/songs/from-spotify', {
         spotifyTrack
       });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/songs'] });
-      toast({
-        title: "Song added!",
-        description: "Successfully added song to your library"
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Failed to add song",
-        description: "Please try again",
-        variant: "destructive"
-      });
+      console.log('API request successful:', response);
+      return response.json();
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
     }
-  });
+  },
+  onSuccess: (data) => {
+    console.log('=== Mutation SUCCESS ===', data);
+    queryClient.invalidateQueries({ queryKey: ['/api/songs'] });
+    toast({
+      title: "Song added!",
+      description: "Successfully added song to your library"
+    });
+  },
+  onError: (error) => {
+    console.error('=== Mutation ERROR ===', error);
+    toast({
+      title: "Failed to add song",
+      description: "Please try again",
+      variant: "destructive"
+    });
+  }
+});
 
   // Create collection mutation
   const createCollectionMutation = useMutation({

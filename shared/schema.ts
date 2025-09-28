@@ -146,8 +146,8 @@ export const insertSongSchema = createInsertSchema(song).omit({
 }).extend({
   difficulty: z.number().min(1, "Difficulty must be at least 1").max(5, "Difficulty must be at most 5").default(1),
   capo: z.number().min(0, "Capo cannot be negative").default(0),
-  tempo: z.number().min(1, "Tempo must be positive").optional(),
-  duration: z.number().min(1, "Duration must be positive").optional(),
+  tempo: z.number().min(1, "Tempo must be positive").optional().nullable(),
+  duration: z.number().min(1, "Duration must be positive").optional().nullable(),
 });
 
 export const insertSongCollectionSchema = createInsertSchema(songCollection).omit({
