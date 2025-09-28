@@ -59,6 +59,7 @@ export default function SongsPage() {
   const [showAddSong, setShowAddSong] = useState(false);
   const [showCreateCollection, setShowCreateCollection] = useState(false);
   const [activeTab, setActiveTab] = useState('library');
+  const [practiceModalSong, setPracticeModalSong] = useState<Song | null>(null);
 
   // Fetch songs with search and filters
   const { data: songs = [], isLoading: songsLoading } = useQuery<Song[]>({
@@ -326,6 +327,8 @@ const addSongFromSpotifyMutation = useMutation({
                 <Filter className="w-4 h-4 mr-1" />
                 Clear
               </Button>
+		
+
             )}
           </div>
         </div>
@@ -401,14 +404,18 @@ const addSongFromSpotifyMutation = useMutation({
                     </div>
                     
                     <div className="flex gap-2 mt-4">
-                      <Button 
-                        size="sm" 
-                        className="flex-1 bg-blue-600 hover:bg-blue-500"
-                        data-testid={`button-practice-${song.id}`}
-                      >
-                        <Play className="w-4 h-4 mr-1" />
-                        Practice
-                      </Button>
+<Button 
+  size="sm" 
+  className="flex-1 bg-blue-600 hover:bg-blue-500"
+  onClick={(e) => {
+    e.stopPropagation();
+    setPracticeModalSong(song);
+  }}
+  data-testid={`button-practice-${song.id}`}
+>
+  <Play className="w-4 h-4 mr-1" />
+  Practice
+</Button>
                       <Button 
                         size="sm" 
                         variant="outline"
@@ -779,6 +786,88 @@ const addSongFromSpotifyMutation = useMutation({
           </Form>
         </DialogContent>
       </Dialog>
+{/* Practice Modal */}
+{practiceModalSong && (
+  <Dialog open={!!practiceModalSong} onOpenChange={() => setPracticeModalSong(null)}>
+    <DialogContent className="max-w-3xl bg-slate-800 border-slate-700">
+      <DialogHeader>
+        <DialogTitle className="text-white text-xl flex items-center gap-2">
+          <Play className="w-5 h-5 text-blue-500" />
+          Practice: {practiceModalSong.title}
+        </DialogTitle>
+      </DialogHeader>
+      <div className="space-y-6">
+        {/* Song Info */}
+        <div className="bg-slate-900 p-4 rounded-lg">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <span className="text-slate-400">Artist:</span>
+              <p className="text-white font-medium">{practiceModalSong.artist}</p>
+            </div>
+            {practiceModalSong.key && (
+              <div>
+                <span className="text-slate-400">Key:</span>
+                <p className="text-white font-medium">{practiceModalSong.key}</p>
+              </div>
+            )}
+            {practiceModalSong.tempo && (
+              <div>
+                <span className="text-slate-400">Tempo:</span>
+                <p className="text-white font-medium">{practiceModalSong.tempo} BPM</p>
+              </div>
+            )}
+            <div>
+              <span className="text-slate-400">Time Signature:</span>
+              <p className="text-white font-medium">{practiceModalSong.timeSignature || '4/4'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Practice Tools */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Button className="bg-green-600 hover:bg-green-500 h-16">
+            <Clock className="w-5 h-5 mr-2" />
+            Start Practice Timer
+          </Button>
+          <Button className="bg-purple-600 hover:bg-purple-500 h-16">
+            <Music className="w-5 h-5 mr-2" />
+            View Chord Progressions
+          </Button>
+        </div>
+
+        {/* Practice Notes */}
+        <div>
+          <h4 className="text-white font-semibold mb-2">Practice Notes</h4>
+          <textarea 
+            className="w-full h-24 bg-slate-900 border-slate-700 text-white p-3 rounded"
+            placeholder="Add your practice notes for this song..."
+            defaultValue={practiceModalSong.notes || ''}
+          />
+        </div>
+
+        <div className="flex gap-3">
+          <Button 
+            className="flex-1 bg-blue-600 hover:bg-blue-500"
+            onClick={() => {
+              // Close practice modal and open song details
+              setPracticeModalSong(null);
+              setSelectedSong(practiceModalSong);
+            }}
+          >
+            Song Details
+          </Button>
+          <Button 
+            variant="outline" 
+            className="border-slate-600 text-slate-300"
+            onClick={() => setPracticeModalSong(null)}
+          >
+            Close
+          </Button>
+        </div>
+      </div>
+    </DialogContent>
+  </Dialog>
+)}
     </div>
   );
 }
