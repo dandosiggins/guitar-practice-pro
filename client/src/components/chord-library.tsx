@@ -23,11 +23,11 @@ function ChordCard({ chord, onSelect }: ChordCard) {
           ))}
           
           {/* Strings */}
-          {['E', 'A', 'D', 'G', 'B', 'e'].map((stringName, stringIndex) => (
+          {['e', 'B', 'G', 'D', 'A', 'E'].map((stringName, stringIndex) => (
             <div key={stringName} className="contents">
               <div className="text-slate-400 text-right pr-2">{stringName}</div>
               {[1, 2, 3, 4, 5].map(fret => {
-                const fretValue = chord.frets[5 - stringIndex]; // Reverse order for display
+                const fretValue = chord.frets[stringIndex]; // Direct order since we reversed the array
                 const hasFret = fretValue === fret;
                 const isOpen = fretValue === 0 && fret === 1;
                 const isMuted = fretValue === 'x';
@@ -35,13 +35,13 @@ function ChordCard({ chord, onSelect }: ChordCard) {
                 return (
                   <div key={fret} className="h-4 border-b border-slate-500 relative">
                     {hasFret && (
-                      <div className="w-3 h-3 bg-[#6366f1] rounded-full absolute -top-1.5 left-1/2 transform -translate-x-1/2"></div>
+                      <div className="w-3 h-3 bg-[#6366f1] rounded-full absolute -top-0.5 left-1/2 transform -translate-x-1/2"></div>
                     )}
                     {isOpen && fret === 1 && (
-                      <div className="w-2 h-2 border border-[#6366f1] rounded-full absolute -top-1 left-1/2 transform -translate-x-1/2"></div>
+                      <div className="w-2 h-2 border border-[#6366f1] rounded-full absolute top-1 left-1/2 transform -translate-x-1/2"></div>
                     )}
                     {isMuted && fret === 1 && (
-                      <div className="text-red-400 text-xs absolute -top-2 left-1/2 transform -translate-x-1/2">×</div>
+                      <div className="text-red-400 text-xs absolute top-2 left-1/2 transform -translate-x-1/2">×</div>
                     )}
                   </div>
                 );

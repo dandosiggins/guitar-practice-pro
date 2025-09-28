@@ -15,7 +15,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'C Major',
     type: 'Major',
     key: 'C',
-    frets: ['x', 3, 2, 0, 1, 0],
+    frets: [0, 1, 0, 2, 3, 'x'],
     fingers: '3-2-1',
     difficulty: 'Easy'
   },
@@ -24,7 +24,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'C Minor',
     type: 'Minor',
     key: 'C',
-    frets: ['x', 3, 1, 0, 1, 3],
+    frets: [3, 1, 0, 1, 3, 'x'],
     fingers: '3-1-1-4',
     difficulty: 'Medium'
   },
@@ -35,7 +35,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'G Major',
     type: 'Major',
     key: 'G',
-    frets: [3, 2, 0, 0, 3, 3],
+    frets: [3, 3, 0, 0, 2, 3],
     fingers: '3-1-4-4',
     difficulty: 'Easy'
   },
@@ -46,7 +46,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'A Minor',
     type: 'Minor',
     key: 'A',
-    frets: ['x', 0, 2, 2, 1, 0],
+    frets: [0, 1, 2, 2, 0, 'x'],
     fingers: '2-3-1',
     difficulty: 'Easy'
   },
@@ -55,7 +55,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'A Major',
     type: 'Major',
     key: 'A',
-    frets: ['x', 0, 2, 2, 2, 0],
+    frets: [0, 2, 2, 2, 0, 'x'],
     fingers: '1-2-3',
     difficulty: 'Easy'
   },
@@ -66,7 +66,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'F Major',
     type: 'Major',
     key: 'F',
-    frets: [1, 3, 3, 2, 1, 1],
+    frets: [1, 1, 2, 3, 3, 1],
     fingers: '1-3-4-2-1-1',
     difficulty: 'Hard'
   },
@@ -77,7 +77,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'E Minor',
     type: 'Minor',
     key: 'E',
-    frets: [0, 2, 2, 0, 0, 0],
+    frets: [0, 0, 0, 2, 2, 0],
     fingers: '2-3',
     difficulty: 'Easy'
   },
@@ -86,7 +86,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'E Major',
     type: 'Major',
     key: 'E',
-    frets: [0, 2, 2, 1, 0, 0],
+    frets: [0, 0, 1, 2, 2, 0],
     fingers: '2-3-1',
     difficulty: 'Easy'
   },
@@ -97,7 +97,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'D Major',
     type: 'Major',
     key: 'D',
-    frets: ['x', 'x', 0, 2, 3, 2],
+    frets: [2, 3, 2, 0, 'x', 'x'],
     fingers: '1-3-2',
     difficulty: 'Easy'
   },
@@ -106,7 +106,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'D Minor',
     type: 'Minor',
     key: 'D',
-    frets: ['x', 'x', 0, 2, 3, 1],
+    frets: [1, 3, 2, 0, 'x', 'x'],
     fingers: '2-3-1',
     difficulty: 'Easy'
   },
@@ -117,7 +117,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'B Minor',
     type: 'Minor',
     key: 'B',
-    frets: ['x', 2, 4, 4, 3, 2],
+    frets: [2, 3, 4, 4, 2, 'x'],
     fingers: '1-3-4-2-1',
     difficulty: 'Medium'
   },
@@ -126,7 +126,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'B Major',
     type: 'Major',
     key: 'B',
-    frets: ['x', 2, 4, 4, 4, 2],
+    frets: [2, 4, 4, 4, 2, 'x'],
     fingers: '1-3-4-4-1',
     difficulty: 'Hard'
   },
@@ -135,7 +135,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'B Dominant 7th',
     type: '7th',
     key: 'B',
-    frets: ['x', 2, 1, 2, 0, 2],
+    frets: [2, 0, 2, 1, 2, 'x'],
     fingers: '2-1-3-4',
     difficulty: 'Medium'
   },
@@ -146,7 +146,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'A Dominant 7th',
     type: '7th',
     key: 'A',
-    frets: ['x', 0, 2, 0, 2, 0],
+    frets: [0, 2, 0, 2, 0, 'x'],
     fingers: '2-3',
     difficulty: 'Easy'
   },
@@ -155,7 +155,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'D Dominant 7th',
     type: '7th',
     key: 'D',
-    frets: ['x', 'x', 0, 2, 1, 2],
+    frets: [2, 1, 2, 0, 'x', 'x'],
     fingers: '2-1-3',
     difficulty: 'Easy'
   },
@@ -164,7 +164,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'E Dominant 7th',
     type: '7th',
     key: 'E',
-    frets: [0, 2, 0, 1, 0, 0],
+    frets: [0, 0, 1, 0, 2, 0],
     fingers: '2-1',
     difficulty: 'Easy'
   },
@@ -173,7 +173,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'G Dominant 7th',
     type: '7th',
     key: 'G',
-    frets: [3, 2, 0, 0, 0, 1],
+    frets: [1, 0, 0, 0, 2, 3],
     fingers: '3-2-1',
     difficulty: 'Easy'
   },
@@ -182,7 +182,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'C Dominant 7th',
     type: '7th',
     key: 'C',
-    frets: ['x', 3, 2, 3, 1, 0],
+    frets: [0, 1, 3, 2, 3, 'x'],
     fingers: '3-2-4-1',
     difficulty: 'Medium'
   },
@@ -193,7 +193,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'A Minor 7th',
     type: 'Minor 7th',
     key: 'A',
-    frets: ['x', 0, 2, 0, 1, 0],
+    frets: [0, 1, 0, 2, 0, 'x'],
     fingers: '2-1',
     difficulty: 'Easy'
   },
@@ -202,7 +202,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'D Minor 7th',
     type: 'Minor 7th',
     key: 'D',
-    frets: ['x', 'x', 0, 2, 1, 1],
+    frets: [1, 1, 2, 0, 'x', 'x'],
     fingers: '2-1-1',
     difficulty: 'Easy'
   },
@@ -211,7 +211,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'E Minor 7th',
     type: 'Minor 7th',
     key: 'E',
-    frets: [0, 2, 2, 0, 3, 0],
+    frets: [0, 3, 0, 2, 2, 0],
     fingers: '2-3-4',
     difficulty: 'Easy'
   },
@@ -220,7 +220,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'G Minor 7th',
     type: 'Minor 7th',
     key: 'G',
-    frets: [3, 5, 3, 3, 3, 3],
+    frets: [3, 3, 3, 3, 5, 3],
     fingers: '1-3-1-1-1-1',
     difficulty: 'Hard'
   },
@@ -231,7 +231,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'C Major 7th',
     type: 'Major 7th',
     key: 'C',
-    frets: ['x', 3, 2, 0, 0, 0],
+    frets: [0, 0, 0, 2, 3, 'x'],
     fingers: '3-2',
     difficulty: 'Easy'
   },
@@ -240,7 +240,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'D Major 7th',
     type: 'Major 7th',
     key: 'D',
-    frets: ['x', 'x', 0, 2, 2, 2],
+    frets: [2, 2, 2, 0, 'x', 'x'],
     fingers: '1-2-3',
     difficulty: 'Easy'
   },
@@ -249,7 +249,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'G Major 7th',
     type: 'Major 7th',
     key: 'G',
-    frets: [3, 2, 0, 0, 0, 2],
+    frets: [2, 0, 0, 0, 2, 3],
     fingers: '3-1-2',
     difficulty: 'Easy'
   },
@@ -258,7 +258,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'A Major 7th',
     type: 'Major 7th',
     key: 'A',
-    frets: ['x', 0, 2, 1, 2, 0],
+    frets: [0, 2, 1, 2, 0, 'x'],
     fingers: '2-1-3',
     difficulty: 'Easy'
   },
@@ -269,7 +269,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'D Suspended 4th',
     type: 'Suspended',
     key: 'D',
-    frets: ['x', 'x', 0, 2, 3, 3],
+    frets: [3, 3, 2, 0, 'x', 'x'],
     fingers: '1-2-3',
     difficulty: 'Easy'
   },
@@ -278,7 +278,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'A Suspended 4th',
     type: 'Suspended',
     key: 'A',
-    frets: ['x', 0, 2, 2, 3, 0],
+    frets: [0, 3, 2, 2, 0, 'x'],
     fingers: '1-2-3',
     difficulty: 'Easy'
   },
@@ -287,7 +287,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'E Suspended 4th',
     type: 'Suspended',
     key: 'E',
-    frets: [0, 2, 2, 2, 0, 0],
+    frets: [0, 0, 2, 2, 2, 0],
     fingers: '2-3-4',
     difficulty: 'Easy'
   },
@@ -296,7 +296,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'G Suspended 4th',
     type: 'Suspended',
     key: 'G',
-    frets: [3, 3, 0, 0, 1, 3],
+    frets: [3, 1, 0, 0, 3, 3],
     fingers: '3-4-1-3',
     difficulty: 'Medium'
   },
@@ -307,7 +307,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'F# Minor',
     type: 'Minor',
     key: 'F#',
-    frets: [2, 4, 4, 2, 2, 2],
+    frets: [2, 2, 2, 4, 4, 2],
     fingers: '1-3-4-1-1-1',
     difficulty: 'Hard'
   },
@@ -316,7 +316,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'Bb Major',
     type: 'Major',
     key: 'Bb',
-    frets: ['x', 1, 3, 3, 3, 1],
+    frets: [1, 3, 3, 3, 1, 'x'],
     fingers: '1-2-3-4-1',
     difficulty: 'Hard'
   },
@@ -325,7 +325,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'Eb Major',
     type: 'Major',
     key: 'Eb',
-    frets: ['x', 'x', 1, 3, 4, 3],
+    frets: [3, 4, 3, 1, 'x', 'x'],
     fingers: '1-2-4-3',
     difficulty: 'Medium'
   },
@@ -334,7 +334,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'G Minor',
     type: 'Minor',
     key: 'G',
-    frets: [3, 5, 5, 3, 3, 3],
+    frets: [3, 3, 3, 5, 5, 3],
     fingers: '1-3-4-1-1-1',
     difficulty: 'Hard'
   },
@@ -343,7 +343,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'F Minor',
     type: 'Minor',
     key: 'F',
-    frets: [1, 3, 3, 1, 1, 1],
+    frets: [1, 1, 1, 3, 3, 1],
     fingers: '1-3-4-1-1-1',
     difficulty: 'Hard'
   },
@@ -354,7 +354,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'C Add 9',
     type: 'Major',
     key: 'C',
-    frets: ['x', 3, 2, 0, 3, 0],
+    frets: [0, 3, 0, 2, 3, 'x'],
     fingers: '2-1-3',
     difficulty: 'Easy'
   },
@@ -372,7 +372,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'D Add 9',
     type: 'Major',
     key: 'D',
-    frets: ['x', 'x', 0, 2, 3, 0],
+    frets: [0, 3, 2, 0, 'x', 'x'],
     fingers: '1-2',
     difficulty: 'Easy'
   },
@@ -383,7 +383,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'B Diminished',
     type: 'Diminished',
     key: 'B',
-    frets: ['x', 2, 3, 1, 3, 1],
+    frets: [1, 3, 1, 3, 2, 'x'],
     fingers: '2-3-1-4-1',
     difficulty: 'Hard'
   },
@@ -392,7 +392,7 @@ export const chordLibrary: ChordDiagram[] = [
     fullName: 'C# Diminished',
     type: 'Diminished',
     key: 'C#',
-    frets: ['x', 'x', 2, 3, 2, 3],
+    frets: [3, 2, 3, 2, 'x', 'x'],
     fingers: '1-2-1-3',
     difficulty: 'Medium'
   }
