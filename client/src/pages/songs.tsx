@@ -30,6 +30,7 @@ import {
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import type { Song, SongCollection } from '@shared/schema';
+import PracticeTimer from '@/components/practice-timer';
 
 interface SearchFilters {
   genre: string;
@@ -825,10 +826,33 @@ const addSongFromSpotifyMutation = useMutation({
 
         {/* Practice Tools */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Button className="bg-green-600 hover:bg-green-500 h-16">
-            <Clock className="w-5 h-5 mr-2" />
-            Start Practice Timer
-          </Button>
+{/* Practice Timer */}
+<PracticeTimer 
+  onComplete={async (durationMinutes) => {
+    // Save practice session
+    try {
+      await fetch('/api/song-practice-sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'default-user', // You'll want to add real user auth later
+          songId: practiceModalSong.id,
+          practiceType: 'full_song',
+          duration: durationMinutes,
+          practiceDate: new Date().toISOString(),
+          completed: true
+        })
+      });
+      
+      toast({
+        title: "Practice session saved!",
+        description: `You practiced for ${durationMinutes} minutes`
+      });
+    } catch (error) {
+      console.error('Failed to save practice session:', error);
+    }
+  }}
+/>
           <Button className="bg-purple-600 hover:bg-purple-500 h-16">
             <Music className="w-5 h-5 mr-2" />
             View Chord Progressions
