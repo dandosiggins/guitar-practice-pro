@@ -61,8 +61,9 @@ export default function SongsPage() {
   const [showCreateCollection, setShowCreateCollection] = useState(false);
   const [activeTab, setActiveTab] = useState('library');
   const [practiceModalSong, setPracticeModalSong] = useState<Song | null>(null);
-const [editingChords, setEditingChords] = useState(false);
-const [chordInput, setChordInput] = useState('');
+  const [editingChords, setEditingChords] = useState(false);
+  const [chordInput, setChordInput] = useState('');
+  const [practiceNotes, setPracticeNotes] = useState('');
 
   // Fetch songs with search and filters
   const { data: songs = [], isLoading: songsLoading } = useQuery<Song[]>({
@@ -113,40 +114,40 @@ const [chordInput, setChordInput] = useState('');
   });
 
   // Add song from Spotify
-const addSongFromSpotifyMutation = useMutation({
-  mutationFn: async (spotifyTrack: any) => {
-    console.log('=== Mutation function started ===');
-    console.log('Input track:', spotifyTrack);
-    
-    try {
-      console.log('Making API request...');
-      const response = await apiRequest('POST', '/api/songs/from-spotify', {
-        spotifyTrack
+  const addSongFromSpotifyMutation = useMutation({
+    mutationFn: async (spotifyTrack: any) => {
+      console.log('=== Mutation function started ===');
+      console.log('Input track:', spotifyTrack);
+      
+      try {
+        console.log('Making API request...');
+        const response = await apiRequest('POST', '/api/songs/from-spotify', {
+          spotifyTrack
+        });
+        console.log('API request successful:', response);
+        return response.json();
+      } catch (error) {
+        console.error('API request failed:', error);
+        throw error;
+      }
+    },
+    onSuccess: (data) => {
+      console.log('=== Mutation SUCCESS ===', data);
+      queryClient.invalidateQueries({ queryKey: ['/api/songs'] });
+      toast({
+        title: "Song added!",
+        description: "Successfully added song to your library"
       });
-      console.log('API request successful:', response);
-      return response.json();
-    } catch (error) {
-      console.error('API request failed:', error);
-      throw error;
+    },
+    onError: (error) => {
+      console.error('=== Mutation ERROR ===', error);
+      toast({
+        title: "Failed to add song",
+        description: "Please try again",
+        variant: "destructive"
+      });
     }
-  },
-  onSuccess: (data) => {
-    console.log('=== Mutation SUCCESS ===', data);
-    queryClient.invalidateQueries({ queryKey: ['/api/songs'] });
-    toast({
-      title: "Song added!",
-      description: "Successfully added song to your library"
-    });
-  },
-  onError: (error) => {
-    console.error('=== Mutation ERROR ===', error);
-    toast({
-      title: "Failed to add song",
-      description: "Please try again",
-      variant: "destructive"
-    });
-  }
-});
+  });
 
   // Create collection mutation
   const createCollectionMutation = useMutation({
@@ -330,8 +331,6 @@ const addSongFromSpotifyMutation = useMutation({
                 <Filter className="w-4 h-4 mr-1" />
                 Clear
               </Button>
-		
-
             )}
           </div>
         </div>
@@ -407,18 +406,19 @@ const addSongFromSpotifyMutation = useMutation({
                     </div>
                     
                     <div className="flex gap-2 mt-4">
-<Button 
-  size="sm" 
-  className="flex-1 bg-blue-600 hover:bg-blue-500"
-  onClick={(e) => {
-    e.stopPropagation();
-    setPracticeModalSong(song);
-  }}
-  data-testid={`button-practice-${song.id}`}
->
-  <Play className="w-4 h-4 mr-1" />
-  Practice
-</Button>
+                      <Button 
+                        size="sm" 
+                        className="flex-1 bg-blue-600 hover:bg-blue-500"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPracticeModalSong(song);
+                          setPracticeNotes(song.notes || '');
+                        }}
+                        data-testid={`button-practice-${song.id}`}
+                      >
+                        <Play className="w-4 h-4 mr-1" />
+                        Practice
+                      </Button>
                       <Button 
                         size="sm" 
                         variant="outline"
@@ -789,190 +789,214 @@ const addSongFromSpotifyMutation = useMutation({
           </Form>
         </DialogContent>
       </Dialog>
-{/* Practice Modal */}
-{practiceModalSong && (
-  <Dialog open={!!practiceModalSong} onOpenChange={() => setPracticeModalSong(null)}>
-    <DialogContent className="max-w-3xl bg-slate-800 border-slate-700">
-      <DialogHeader>
-        <DialogTitle className="text-white text-xl flex items-center gap-2">
-          <Play className="w-5 h-5 text-blue-500" />
-          Practice: {practiceModalSong.title}
-        </DialogTitle>
-      </DialogHeader>
-      <div className="space-y-6">
-        {/* Song Info */}
-        <div className="bg-slate-900 p-4 rounded-lg">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <span className="text-slate-400">Artist:</span>
-              <p className="text-white font-medium">{practiceModalSong.artist}</p>
-            </div>
-            {practiceModalSong.key && (
-              <div>
-                <span className="text-slate-400">Key:</span>
-                <p className="text-white font-medium">{practiceModalSong.key}</p>
-              </div>
-            )}
-            {practiceModalSong.tempo && (
-              <div>
-                <span className="text-slate-400">Tempo:</span>
-                <p className="text-white font-medium">{practiceModalSong.tempo} BPM</p>
-              </div>
-            )}
-            <div>
-              <span className="text-slate-400">Time Signature:</span>
-              <p className="text-white font-medium">{practiceModalSong.timeSignature || '4/4'}</p>
-            </div>
-          </div>
-        </div>
 
-        {/* Practice Tools */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-{/* Practice Timer */}
-<PracticeTimer 
-  onComplete={async (durationMinutes) => {
-    // Save practice session
-    try {
-      await fetch('/api/song-practice-sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: 'default-user', // You'll want to add real user auth later
-          songId: practiceModalSong.id,
-          practiceType: 'full_song',
-          duration: durationMinutes,
-          practiceDate: new Date().toISOString(),
-          completed: true
-        })
-      });
-      
-      toast({
-        title: "Practice session saved!",
-        description: `You practiced for ${durationMinutes} minutes`
-      });
-    } catch (error) {
-      console.error('Failed to save practice session:', error);
-    }
-  }}
-/>
-{/* Chord Progression Section */}
-<div className="bg-slate-900 p-4 rounded-lg">
-  <div className="flex items-center justify-between mb-3">
-    <h4 className="text-white font-semibold">Chord Progression</h4>
-<Button 
-  size="sm"
-  variant="outline"
-  onClick={() => {
-    setEditingChords(!editingChords);
-    if (!editingChords && practiceModalSong.chordProgression) {
-      setChordInput((practiceModalSong.chordProgression as any[]).join(' '));
-    }
-  }}
-  className="border-slate-600 text-slate-300"
->
-  {editingChords ? 'Cancel' : 'Edit'}
-</Button>
-  </div>
+      {/* Practice Modal */}
+      {practiceModalSong && (
+        <Dialog open={!!practiceModalSong} onOpenChange={() => setPracticeModalSong(null)}>
+          <DialogContent className="max-w-3xl bg-slate-800 border-slate-700">
+            <DialogHeader>
+              <DialogTitle className="text-white text-xl flex items-center gap-2">
+                <Play className="w-5 h-5 text-blue-500" />
+                Practice: {practiceModalSong.title}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6">
+              {/* Song Info */}
+              <div className="bg-slate-900 p-4 rounded-lg">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <span className="text-slate-400">Artist:</span>
+                    <p className="text-white font-medium">{practiceModalSong.artist}</p>
+                  </div>
+                  {practiceModalSong.key && (
+                    <div>
+                      <span className="text-slate-400">Key:</span>
+                      <p className="text-white font-medium">{practiceModalSong.key}</p>
+                    </div>
+                  )}
+                  {practiceModalSong.tempo && (
+                    <div>
+                      <span className="text-slate-400">Tempo:</span>
+                      <p className="text-white font-medium">{practiceModalSong.tempo} BPM</p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-slate-400">Time Signature:</span>
+                    <p className="text-white font-medium">{practiceModalSong.timeSignature || '4/4'}</p>
+                  </div>
+                </div>
+              </div>
 
-  {editingChords ? (
-    <div className="space-y-3">
-      <Input
-        placeholder="Enter chords separated by spaces (e.g., C G Am F)"
-        value={chordInput}
-        onChange={(e) => setChordInput(e.target.value)}
-        className="bg-slate-800 border-slate-700 text-white"
-      />
-      <Button 
-        onClick={async () => {
-          // Parse chord input into array
-          const chords = chordInput.split(' ').filter(c => c.trim());
-          
-          // Save to database
-          try {
-            await fetch(`/api/songs/${practiceModalSong.id}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                chordProgression: chords
-              })
-            });
-            
-            // Update local state
-            practiceModalSong.chordProgression = chords as any;
-            setEditingChords(false);
-            setChordInput('');
-            
-            toast({
-              title: "Chord progression saved!",
-              description: "Your chords have been saved to this song"
-            });
-          } catch (error) {
-            console.error('Failed to save chords:', error);
-          }
-        }}
-        className="bg-blue-600 hover:bg-blue-500"
-      >
-        Save Chords
-      </Button>
-    </div>
-  ) : (
-    <div>
-      {practiceModalSong.chordProgression && Array.isArray(practiceModalSong.chordProgression) && (practiceModalSong.chordProgression as any[]).length > 0 ? (
-        <div className="flex flex-wrap gap-2">
-          {(practiceModalSong.chordProgression as any[]).map((chord, index) => (
-            <div 
-              key={index}
-              className="bg-slate-800 border-2 border-blue-500 text-white px-4 py-2 rounded-lg font-semibold text-lg"
-            >
-              {chord}
+              {/* Practice Tools */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Practice Timer */}
+                <PracticeTimer 
+                  onComplete={async (durationMinutes) => {
+                    try {
+                      await fetch('/api/song-practice-sessions', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          userId: 'default-user',
+                          songId: practiceModalSong.id,
+                          practiceType: 'full_song',
+                          duration: durationMinutes,
+                          practiceDate: new Date().toISOString(),
+                          completed: true
+                        })
+                      });
+                      
+                      toast({
+                        title: "Practice session saved!",
+                        description: `You practiced for ${durationMinutes} minutes`
+                      });
+                    } catch (error) {
+                      console.error('Failed to save practice session:', error);
+                    }
+                  }}
+                />
+
+                {/* Chord Progression Section */}
+                <div className="bg-slate-900 p-4 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-white font-semibold">Chord Progression</h4>
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingChords(!editingChords);
+                        if (!editingChords && practiceModalSong.chordProgression) {
+                          setChordInput((practiceModalSong.chordProgression as any[]).join(' '));
+                        }
+                      }}
+                      className="border-slate-600 text-slate-300"
+                    >
+                      {editingChords ? 'Cancel' : 'Edit'}
+                    </Button>
+                  </div>
+
+                  {editingChords ? (
+                    <div className="space-y-3">
+                      <Input
+                        placeholder="Enter chords separated by spaces (e.g., C G Am F)"
+                        value={chordInput}
+                        onChange={(e) => setChordInput(e.target.value)}
+                        className="bg-slate-800 border-slate-700 text-white"
+                      />
+                      <Button 
+                        onClick={async () => {
+                          const chords = chordInput.split(' ').filter(c => c.trim());
+                          
+                          try {
+                            await fetch(`/api/songs/${practiceModalSong.id}`, {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                chordProgression: chords
+                              })
+                            });
+                            
+                            practiceModalSong.chordProgression = chords as any;
+                            setEditingChords(false);
+                            setChordInput('');
+                            
+                            toast({
+                              title: "Chord progression saved!",
+                              description: "Your chords have been saved to this song"
+                            });
+                          } catch (error) {
+                            console.error('Failed to save chords:', error);
+                          }
+                        }}
+                        className="bg-blue-600 hover:bg-blue-500"
+                      >
+                        Save Chords
+                      </Button>
+                    </div>
+                  ) : (
+                    <div>
+                      {practiceModalSong.chordProgression && 
+                       Array.isArray(practiceModalSong.chordProgression) && 
+                       (practiceModalSong.chordProgression as any[]).length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {(practiceModalSong.chordProgression as any[]).map((chord, index) => (
+                            <div 
+                              key={index}
+                              className="bg-slate-800 border-2 border-blue-500 text-white px-4 py-2 rounded-lg font-semibold text-lg"
+                            >
+                              {chord}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-slate-400 text-sm">
+                          No chord progression added yet. Click Edit to add chords.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Practice Notes */}
+              <div>
+                <h4 className="text-white font-semibold mb-2">Practice Notes</h4>
+                <textarea 
+                  className="w-full h-24 bg-slate-900 border-slate-700 text-white p-3 rounded mb-2"
+                  placeholder="Add your practice notes for this song..."
+                  value={practiceNotes}
+                  onChange={(e) => setPracticeNotes(e.target.value)}
+                />
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await fetch(`/api/songs/${practiceModalSong.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          notes: practiceNotes
+                        })
+                      });
+                      
+                      practiceModalSong.notes = practiceNotes;
+                      
+                      toast({
+                        title: "Notes saved!",
+                        description: "Your practice notes have been saved"
+                      });
+                    } catch (error) {
+                      console.error('Failed to save notes:', error);
+                    }
+                  }}
+                  className="bg-blue-600 hover:bg-blue-500"
+                >
+                  Save Notes
+                </Button>
+              </div>
+
+              <div className="flex gap-3">
+                <Button 
+                  className="flex-1 bg-blue-600 hover:bg-blue-500"
+                  onClick={() => {
+                    setPracticeModalSong(null);
+                    setSelectedSong(practiceModalSong);
+                  }}
+                >
+                  Song Details
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="border-slate-600 text-slate-300"
+                  onClick={() => setPracticeModalSong(null)}
+                >
+                  Close
+                </Button>
+              </div>
             </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-slate-400 text-sm">No chord progression added yet. Click Edit to add chords.</p>
+          </DialogContent>
+        </Dialog>
       )}
-    </div>
-  )}
-</div>
-          <Button className="bg-purple-600 hover:bg-purple-500 h-16">
-            <Music className="w-5 h-5 mr-2" />
-            View Chord Progressions
-          </Button>
-        </div>
-
-        {/* Practice Notes */}
-        <div>
-          <h4 className="text-white font-semibold mb-2">Practice Notes</h4>
-          <textarea 
-            className="w-full h-24 bg-slate-900 border-slate-700 text-white p-3 rounded"
-            placeholder="Add your practice notes for this song..."
-            defaultValue={practiceModalSong.notes || ''}
-          />
-        </div>
-
-        <div className="flex gap-3">
-          <Button 
-            className="flex-1 bg-blue-600 hover:bg-blue-500"
-            onClick={() => {
-              // Close practice modal and open song details
-              setPracticeModalSong(null);
-              setSelectedSong(practiceModalSong);
-            }}
-          >
-            Song Details
-          </Button>
-          <Button 
-            variant="outline" 
-            className="border-slate-600 text-slate-300"
-            onClick={() => setPracticeModalSong(null)}
-          >
-            Close
-          </Button>
-        </div>
-      </div>
-    </DialogContent>
-  </Dialog>
-)}
     </div>
   );
 }
