@@ -976,6 +976,15 @@ export default function SongsPage() {
               </div>
 
               <div className="flex gap-3">
+  {practiceModalSong.spotifyId && (
+    <Button 
+      className="flex-1 bg-green-600 hover:bg-green-500"
+      onClick={() => window.open(`https://open.spotify.com/track/${practiceModalSong.spotifyId}`, '_blank')}
+    >
+      <ExternalLink className="w-4 h-4 mr-2" />
+      Open in Spotify
+    </Button>
+  )}
                 <Button 
                   className="flex-1 bg-blue-600 hover:bg-blue-500"
                   onClick={() => {
