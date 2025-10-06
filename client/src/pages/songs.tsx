@@ -25,12 +25,15 @@ import {
   Heart,
   ExternalLink,
   Shuffle,
-  Edit
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import type { Song, SongCollection } from '@shared/schema';
 import PracticeTimer from '@/components/practice-timer';
+
+
 
 interface SearchFilters {
   genre: string;
@@ -148,6 +151,34 @@ export default function SongsPage() {
       });
     }
   });
+
+// Delete song mutation
+const deleteSongMutation = useMutation({
+  mutationFn: async (songId: string) => {
+    const response = await fetch(`/api/songs/${songId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete song');
+    }
+    return response.json();
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/songs'] });
+    setSelectedSong(null);
+    toast({
+      title: "Song deleted",
+      description: "Song removed from your library"
+    });
+  },
+  onError: () => {
+    toast({
+      title: "Failed to delete song",
+      description: "Please try again",
+      variant: "destructive"
+    });
+  }
+});
 
   // Create collection mutation
   const createCollectionMutation = useMutation({
@@ -686,6 +717,18 @@ export default function SongsPage() {
                   <Play className="w-4 h-4 mr-2" />
                   Start Practice Session
                 </Button>
+  <Button 
+    variant="outline" 
+    className="border-red-600 text-red-400 hover:bg-red-900"
+    onClick={() => {
+      if (confirm('Are you sure you want to delete this song from your library?')) {
+        deleteSongMutation.mutate(selectedSong.id);
+      }
+    }}
+  >
+    <Trash2 className="w-4 h-4 mr-2" />
+    Delete
+  </Button>
                 <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700">
                   <Heart className="w-4 h-4 mr-2" />
                   Add to Favorites
