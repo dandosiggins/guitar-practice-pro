@@ -436,29 +436,43 @@ const deleteSongMutation = useMutation({
                       </div>
                     </div>
                     
-                    <div className="flex gap-2 mt-4">
-                      <Button 
-                        size="sm" 
-                        className="flex-1 bg-blue-600 hover:bg-blue-500"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPracticeModalSong(song);
-                          setPracticeNotes(song.notes || '');
-                        }}
-                        data-testid={`button-practice-${song.id}`}
-                      >
-                        <Play className="w-4 h-4 mr-1" />
-                        Practice
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                        data-testid={`button-favorite-${song.id}`}
-                      >
-                        <Heart className="w-4 h-4" />
-                      </Button>
-                    </div>
+<div className="flex gap-2 mt-4">
+  <Button 
+    size="sm" 
+    className="flex-1 bg-blue-600 hover:bg-blue-500"
+    onClick={(e) => {
+      e.stopPropagation();
+      setPracticeModalSong(song);
+      setPracticeNotes(song.notes || '');
+    }}
+    data-testid={`button-practice-${song.id}`}
+  >
+    <Play className="w-4 h-4 mr-1" />
+    Practice
+  </Button>
+  <Button 
+    size="sm" 
+    variant="outline"
+    className="border-slate-600 text-slate-300 hover:bg-slate-700"
+    data-testid={`button-favorite-${song.id}`}
+  >
+    <Heart className="w-4 h-4" />
+  </Button>
+  <Button 
+    size="sm" 
+    variant="outline"
+    className="border-red-600 text-red-400 hover:bg-red-900"
+    onClick={(e) => {
+      e.stopPropagation();
+      if (confirm(`Delete "${song.title}" from your library?`)) {
+        deleteSongMutation.mutate(song.id);
+      }
+    }}
+    data-testid={`button-delete-${song.id}`}
+  >
+    <Trash2 className="w-4 h-4" />
+  </Button>
+</div>
                   </CardContent>
                 </Card>
               ))}
